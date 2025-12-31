@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Stranger Things Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="hub" class="st-theme">
+
+<div id="toastContainer" class="toast-container"></div>
+
+<header class="top-header glass">
+  <h1 class="app-title">Stranger Things Game</h1>
+  <p class="header-sub">Designed by FundsFlow</p>
+  <small id="londonClock"></small>
+  <div class="header-buttons">
+    <button id="btnLogout" class="btn danger">Logout</button>
+    <button id="btnGame" class="btn primary">Game</button>
+    <button id="btnHub" class="btn main">Hub</button>
+    <button id="btnShop" class="btn secondary">Shop</button>
+    <button id="btnUpsideDown" class="btn ghost">The Upside Down</button>
+  </div>
+</header>
+
+<main class="main-shell">
+  <section class="card glass">
+    <h2>Welcome, <span id="hubUserName"></span></h2>
+  </section>
+
+  <section id="notificationPopup" class="card glass hidden"></section>
+
+  <section class="card glass stats">
+    <h2>Your Currency & Stats</h2>
+    <p>Points: <span id="userPoints">0</span></p>
+    <p>Coins: <span id="userCoins">0</span></p>
+    <p>Games Played: <span id="userGamesPlayed">0</span></p>
+    <p>Total XP: <span id="userXP">0</span></p>
+  </section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
