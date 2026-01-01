@@ -3,8 +3,8 @@
 /* ----------------------- USERS ------------------------- */
 const USERS = [
   { name: "James", code: "080512", isAdmin:true },
-  { name: "Mum", code: "1291", isAdmin:false },
-  { name: "Dad", code: "5089", isAdmin:false },
+  { name: "Mum", code: "2206", isAdmin:false },
+  { name: "Dad", code: "2085", isAdmin:false },
   { name: "Nannan", code: "4213", isAdmin:false },
   { name: "Grandad Darren", code: "8765", isAdmin:false },
   { name: "Grandma Jean", code: "1357", isAdmin:false },
