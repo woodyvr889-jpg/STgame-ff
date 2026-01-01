@@ -15,7 +15,11 @@ const USERS = [
 const storage = window.localStorage;
 
 /* ---------------------- LOCK OVERRIDE ------------------ */
-const LOCKED_STATUS = "ON"; // "ON" = locked, "OFF" = unlocked
+/*
+  ON  = locked until date
+  OFF = unlocked immediately (ignores timer)
+*/
+const LOCKED_STATUS = "OFF"; // ← CHANGE HERE
 const UNLOCK_DATE = new Date("2026-01-05T00:00:00+00:00"); // London time
 
 /* ---------------------- LOGIN PAGE ------------------- */
@@ -31,7 +35,9 @@ function initLoginPage() {
   let selected = null;
   let entered = "";
 
-  grid.innerHTML = USERS.map(u=>`<div class="user-card" data-user="${u.name}">${u.name}</div>`).join("");
+  grid.innerHTML = USERS
+    .map(u => `<div class="user-card" data-user="${u.name}">${u.name}</div>`)
+    .join("");
 
   document.querySelectorAll(".user-card").forEach(card=>{
     card.addEventListener("click", ()=>{
@@ -52,22 +58,30 @@ function initLoginPage() {
   document.querySelectorAll(".key-btn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       if(!selected) return;
+
       const n = btn.dataset.num;
       const action = btn.dataset.action;
-      if(action==="clear"){ entered=""; updateDisplay(); return;}
-      if(action==="enter"){
-        if(entered===selected.code){
+
+      if(action === "clear"){
+        entered = "";
+        updateDisplay();
+        return;
+      }
+
+      if(action === "enter"){
+        if(entered === selected.code){
           storage.setItem("currentUser", selected.name);
-          window.location.href="hub.html";
+          window.location.href = "hub.html";
         } else {
-          error.textContent="Wrong code";
-          entered="";
+          error.textContent = "Wrong code";
+          entered = "";
           updateDisplay();
         }
         return;
       }
-      if(n && entered.length<selected.code.length){
-        entered+=n;
+
+      if(n && entered.length < selected.code.length){
+        entered += n;
         updateDisplay();
       }
     });
@@ -82,13 +96,22 @@ function initLoginPage() {
 /* ---------------------- HUB PAGE ------------------- */
 function initHubPage(){
   const user = storage.getItem("currentUser");
-  if(!user){ window.location.href="index.html"; return;}
+  if(!user){
+    window.location.href = "index.html";
+    return;
+  }
+
   document.getElementById("hubUserName").textContent = user;
 
-  // Initialize stats
-  if(!storage.getItem("userStats")) storage.setItem("userStats", JSON.stringify({}));
+  // Init stats
+  if(!storage.getItem("userStats")){
+    storage.setItem("userStats", JSON.stringify({}));
+  }
+
   const stats = JSON.parse(storage.getItem("userStats"));
-  if(!stats[user]) stats[user]={points:0,coins:0,gamesPlayed:0,xp:0};
+  if(!stats[user]){
+    stats[user] = { points:0, coins:0, gamesPlayed:0, xp:0 };
+  }
   storage.setItem("userStats", JSON.stringify(stats));
 
   function updateStats(){
@@ -103,64 +126,55 @@ function initHubPage(){
   // London clock
   const clock = document.getElementById("londonClock");
   setInterval(()=>{
-    const d = new Date().toLocaleString("en-GB",{timeZone:"Europe/London"});
-    clock.textContent=d;
-  },1000);
+    clock.textContent = new Date().toLocaleString("en-GB", {
+      timeZone: "Europe/London"
+    });
+  }, 1000);
 
   initHeaderButtons();
 
-  // Explainer section
-  const mainShell = document.querySelector(".main-shell");
-  const expl = document.createElement("section");
-  expl.className="card glass";
-  expl.innerHTML=`
-    <h2>How it works</h2>
-    <p>XP: Earn by clicking Demogorgon heads. Bombs reduce XP.</p>
-    <p>Coins: Collect to spend in the shop on points or vouchers.</p>
-    <p>Points: Used for bidding events and special items.</p>
-    <p>Games Played: Tracks how many times you've played.</p>
-    <p>All stats auto-save and update in real-time.</p>
-  `;
-  mainShell.appendChild(expl);
-
-  // Countdown timer for shop/game unlock
+  // Unlock timer
   const timerDiv = document.getElementById("unlockTimer");
   const btnGame = document.getElementById("btnGame");
   const btnShop = document.getElementById("btnShop");
 
-  function updateUnlockTimer() {
-    const now = new Date(new Date().toLocaleString("en-GB",{timeZone:"Europe/London"}));
+  function updateUnlockTimer(){
+    const now = new Date(
+      new Date().toLocaleString("en-GB",{ timeZone:"Europe/London" })
+    );
     let diff = UNLOCK_DATE - now;
 
-    // Determine if locked or not
-    let locked = LOCKED_STATUS === "OFF" && diff > 0;
+    // ✅ CORRECT LOGIC
+    const locked = LOCKED_STATUS === "ON" && diff > 0;
 
-    // Set buttons
     if(!locked){
       btnGame.textContent = "Game";
       btnShop.textContent = "Shop";
       btnGame.disabled = false;
       btnShop.disabled = false;
       if(timerDiv) timerDiv.textContent = "Pages are unlocked!";
-    } else {
-      btnGame.textContent = "Game 🔒";
-      btnShop.textContent = "Shop 🔒";
-      btnGame.disabled = true;
-      btnShop.disabled = true;
+      return;
+    }
 
-      if(timerDiv){
-        const days = Math.floor(diff / (1000*60*60*24));
-        diff -= days*1000*60*60*24;
-        const hours = Math.floor(diff / (1000*60*60));
-        diff -= hours*1000*60*60;
-        const minutes = Math.floor(diff / (1000*60));
-        diff -= minutes*1000*60;
-        const seconds = Math.floor(diff / 1000);
+    btnGame.textContent = "Game 🔒";
+    btnShop.textContent = "Shop 🔒";
+    btnGame.disabled = true;
+    btnShop.disabled = true;
 
-        timerDiv.textContent = `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
-      }
+    if(timerDiv){
+      const days = Math.floor(diff / (1000*60*60*24));
+      diff -= days * 86400000;
+      const hours = Math.floor(diff / (1000*60*60));
+      diff -= hours * 3600000;
+      const minutes = Math.floor(diff / (1000*60));
+      diff -= minutes * 60000;
+      const seconds = Math.floor(diff / 1000);
+
+      timerDiv.textContent =
+        `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
   }
+
   updateUnlockTimer();
   setInterval(updateUnlockTimer, 1000);
 }
@@ -173,18 +187,31 @@ function initHeaderButtons(){
   const btnUpside = document.getElementById("btnUpsideDown");
   const btnLogout = document.getElementById("btnLogout");
 
-  btnLogout.addEventListener("click", ()=>{ storage.removeItem("currentUser"); window.location.href="index.html"; });
-  btnHub.addEventListener("click", ()=>{ window.location.href="hub.html"; });
-  btnUpside.addEventListener("click", ()=>{ window.location.href="upsidedown.html"; });
+  btnLogout.addEventListener("click", ()=>{
+    storage.removeItem("currentUser");
+    window.location.href = "index.html";
+  });
 
-  // Game/shop clicks only work if enabled
-  btnGame.addEventListener("click", ()=>{ if(!btnGame.disabled) window.location.href="game.html"; });
-  btnShop.addEventListener("click", ()=>{ if(!btnShop.disabled) window.location.href="shop.html"; });
+  btnHub.addEventListener("click", ()=>{
+    window.location.href = "hub.html";
+  });
+
+  btnUpside.addEventListener("click", ()=>{
+    window.location.href = "upsidedown.html";
+  });
+
+  btnGame.addEventListener("click", ()=>{
+    if(!btnGame.disabled) window.location.href = "game.html";
+  });
+
+  btnShop.addEventListener("click", ()=>{
+    if(!btnShop.disabled) window.location.href = "shop.html";
+  });
 }
 
 /* -------------------- BOOT ------------------------- */
 document.addEventListener("DOMContentLoaded", ()=>{
   const page = document.body.dataset.page;
-  if(page==="login") initLoginPage();
-  if(page==="hub") initHubPage();
+  if(page === "login") initLoginPage();
+  if(page === "hub") initHubPage();
 });
