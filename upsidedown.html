@@ -26,12 +26,33 @@ body {
   font-family: 'ITC Benguiat', serif;
   font-weight: bold;
   text-align:center;
+  position: relative;
 }
 
 #flickerText {
   font-size: 2.5rem;
   line-height: 1.4;
   animation: flicker 1s infinite;
+}
+
+/* Back button styling */
+#backBtn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  background: #550000;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+#backBtn:hover {
+  background: #ff0000;
 }
 
 @keyframes flicker {
@@ -42,11 +63,21 @@ body {
 </style>
 </head>
 <body>
+<button id="backBtn" onclick="goBack()">← Back to Hub</button>
+
 <div id="flickerText">
-The Upside Down is watching...<br>
-Worlds are colliding...<br>
-Eleven senses the chaos...<br>
-Controlled by Vecna, the first: Henry Creel, 001, Mr. Whatsit...
+THE UPSIDE DOWN IS WATCHING...<br>
+WORLDS ARE COLLIDING...<br>
+ELEVEN SENSES THE CHAOS...<br>
+CONTROLLED BY VECNA, THE FIRST: HENRY CREEL, 001, MR. WHATSIT...
+BEWARE. BEWARE! BEWARE!!!
+RUN. RUN! RUN! YOU NEED TO RUNNNN!!!!!
 </div>
+
+<script>
+function goBack() {
+  window.location.href = "hub.html";
+}
+</script>
 </body>
 </html>
