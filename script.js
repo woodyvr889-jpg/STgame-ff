@@ -170,6 +170,44 @@ function initHeaderButtons(){
   btnShop.addEventListener("click", ()=>{ if(!btnShop.disabled) window.location.href="shop.html"; });
 }
 
+/* ------------------- ADMIN EDIT USER STATS ------------------ */
+function editUserStats(adminUser) {
+  // Only allow if current user is admin
+  const currentUserObj = USERS.find(u => u.name === adminUser);
+  if (!currentUserObj?.isAdmin) return;
+
+  const userName = prompt("Enter the name of the user you want to edit:");
+  const userObj = USERS.find(u => u.name === userName);
+  if (!userObj) {
+    alert("User not found!");
+    return;
+  }
+
+  // Get the stats object
+  const stats = JSON.parse(storage.getItem("userStats"));
+  if (!stats[userObj.name]) stats[userObj.name] = { points: 0, coins: 0, gamesPlayed: 0, xp: 0 };
+
+  const userStats = stats[userObj.name];
+
+  // Prompt admin for new values
+  const newXP = prompt(`Current XP: ${userStats.xp}. Enter new XP value:`, userStats.xp);
+  const newCoins = prompt(`Current Coins: ${userStats.coins}. Enter new Coins value:`, userStats.coins);
+  const newPoints = prompt(`Current Points: ${userStats.points}. Enter new Points value:`, userStats.points);
+  const newGames = prompt(`Current Games Played: ${userStats.gamesPlayed}. Enter new Games Played value:`, userStats.gamesPlayed);
+
+  // Update values safely (parse as integers)
+  userStats.xp = parseInt(newXP) || 0;
+  userStats.coins = parseInt(newCoins) || 0;
+  userStats.points = parseInt(newPoints) || 0;
+  userStats.gamesPlayed = parseInt(newGames) || 0;
+
+  // Save back to localStorage
+  stats[userObj.name] = userStats;
+  storage.setItem("userStats", JSON.stringify(stats));
+
+  alert(`Stats for ${userObj.name} updated successfully!`);
+}
+
 /* -------------------- BOOT ------------------------- */
 document.addEventListener("DOMContentLoaded", ()=>{
   const page = document.body.dataset.page;
