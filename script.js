@@ -133,7 +133,7 @@ function initHubPage(){
     let diff = UNLOCK_DATE - now;
 
     // Determine if locked or not
-    let locked = LOCKED_STATUS === "ON" && diff > 0;
+    let locked = LOCKED_STATUS === "OFF" && diff > 0;
 
     // Set buttons
     if(!locked){
