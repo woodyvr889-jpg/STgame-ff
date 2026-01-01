@@ -14,13 +14,24 @@ const USERS = [
 
 const storage = window.localStorage;
 
-/* ---------------------- LOCK OVERRIDE ------------------ */
+/* ---------------------- LOCK SETTINGS ------------------ */
 /*
-  ON  = locked until date
-  OFF = unlocked immediately (ignores timer)
+  ON  = locked until UNLOCK_DATE
+  OFF = unlocked immediately
 */
-const LOCKED_STATUS = "OFF"; // ← CHANGE HERE
-const UNLOCK_DATE = new Date("2026-01-05T00:00:00+00:00"); // London time
+const LOCKED_STATUS = "OFF"; // <<< CHANGE ONLY THIS
+const UNLOCK_DATE = new Date("2026-01-05T00:00:00+00:00");
+
+/* ---------------------- LOCK LOGIC ------------------ */
+function isLockedNow(){
+  if (LOCKED_STATUS === "OFF") return false;
+
+  const nowLondon = new Date(
+    new Date().toLocaleString("en-GB", { timeZone: "Europe/London" })
+  );
+
+  return nowLondon < UNLOCK_DATE;
+}
 
 /* ---------------------- LOGIN PAGE ------------------- */
 function initLoginPage() {
@@ -35,13 +46,13 @@ function initLoginPage() {
   let selected = null;
   let entered = "";
 
-  grid.innerHTML = USERS
-    .map(u => `<div class="user-card" data-user="${u.name}">${u.name}</div>`)
-    .join("");
+  grid.innerHTML = USERS.map(
+    u => `<div class="user-card" data-user="${u.name}">${u.name}</div>`
+  ).join("");
 
   document.querySelectorAll(".user-card").forEach(card=>{
     card.addEventListener("click", ()=>{
-      selected = USERS.find(u=>u.name===card.dataset.user);
+      selected = USERS.find(u => u.name === card.dataset.user);
       entered = "";
       keypadTitle.textContent = `Enter code for ${selected.name}`;
       display.textContent = "----";
@@ -111,8 +122,8 @@ function initHubPage(){
   const stats = JSON.parse(storage.getItem("userStats"));
   if(!stats[user]){
     stats[user] = { points:0, coins:0, gamesPlayed:0, xp:0 };
+    storage.setItem("userStats", JSON.stringify(stats));
   }
-  storage.setItem("userStats", JSON.stringify(stats));
 
   function updateStats(){
     const s = JSON.parse(storage.getItem("userStats"))[user];
@@ -133,26 +144,20 @@ function initHubPage(){
 
   initHeaderButtons();
 
-  // Unlock timer
+  // Lock / timer sync
   const timerDiv = document.getElementById("unlockTimer");
   const btnGame = document.getElementById("btnGame");
   const btnShop = document.getElementById("btnShop");
 
-  function updateUnlockTimer(){
-    const now = new Date(
-      new Date().toLocaleString("en-GB",{ timeZone:"Europe/London" })
-    );
-    let diff = UNLOCK_DATE - now;
-
-    // ✅ CORRECT LOGIC
-    const locked = LOCKED_STATUS === "ON" && diff > 0;
+  function updateUnlockUI(){
+    const locked = isLockedNow();
 
     if(!locked){
       btnGame.textContent = "Game";
       btnShop.textContent = "Shop";
       btnGame.disabled = false;
       btnShop.disabled = false;
-      if(timerDiv) timerDiv.textContent = "Pages are unlocked!";
+      timerDiv.textContent = "Pages are unlocked!";
       return;
     }
 
@@ -161,22 +166,25 @@ function initHubPage(){
     btnGame.disabled = true;
     btnShop.disabled = true;
 
-    if(timerDiv){
-      const days = Math.floor(diff / (1000*60*60*24));
-      diff -= days * 86400000;
-      const hours = Math.floor(diff / (1000*60*60));
-      diff -= hours * 3600000;
-      const minutes = Math.floor(diff / (1000*60));
-      diff -= minutes * 60000;
-      const seconds = Math.floor(diff / 1000);
+    const now = new Date(
+      new Date().toLocaleString("en-GB",{ timeZone:"Europe/London" })
+    );
+    let diff = UNLOCK_DATE - now;
 
-      timerDiv.textContent =
-        `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }
+    const days = Math.floor(diff / 86400000);
+    diff -= days * 86400000;
+    const hours = Math.floor(diff / 3600000);
+    diff -= hours * 3600000;
+    const minutes = Math.floor(diff / 60000);
+    diff -= minutes * 60000;
+    const seconds = Math.floor(diff / 1000);
+
+    timerDiv.textContent =
+      `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
   }
 
-  updateUnlockTimer();
-  setInterval(updateUnlockTimer, 1000);
+  updateUnlockUI();
+  setInterval(updateUnlockUI, 1000);
 }
 
 /* ---------------------- HEADER BUTTONS ------------------- */
@@ -201,11 +209,11 @@ function initHeaderButtons(){
   });
 
   btnGame.addEventListener("click", ()=>{
-    if(!btnGame.disabled) window.location.href = "game.html";
+    if(!isLockedNow()) window.location.href = "game.html";
   });
 
   btnShop.addEventListener("click", ()=>{
-    if(!btnShop.disabled) window.location.href = "shop.html";
+    if(!isLockedNow()) window.location.href = "shop.html";
   });
 }
 
