@@ -14,6 +14,10 @@ const USERS = [
 
 const storage = window.localStorage;
 
+/* ---------------------- LOCK OVERRIDE ------------------ */
+const LOCKED_STATUS = "ON"; // "ON" = locked, "OFF" = unlocked
+const UNLOCK_DATE = new Date("2026-01-05T00:00:00+00:00"); // London time
+
 /* ---------------------- LOGIN PAGE ------------------- */
 function initLoginPage() {
   const grid = document.getElementById("loginProfiles");
@@ -81,6 +85,7 @@ function initHubPage(){
   if(!user){ window.location.href="index.html"; return;}
   document.getElementById("hubUserName").textContent = user;
 
+  // Initialize stats
   if(!storage.getItem("userStats")) storage.setItem("userStats", JSON.stringify({}));
   const stats = JSON.parse(storage.getItem("userStats"));
   if(!stats[user]) stats[user]={points:0,coins:0,gamesPlayed:0,xp:0};
@@ -95,6 +100,7 @@ function initHubPage(){
   }
   updateStats();
 
+  // London clock
   const clock = document.getElementById("londonClock");
   setInterval(()=>{
     const d = new Date().toLocaleString("en-GB",{timeZone:"Europe/London"});
@@ -118,36 +124,42 @@ function initHubPage(){
   mainShell.appendChild(expl);
 
   // Countdown timer for shop/game unlock
-  const unlockDate = new Date("2026-01-05T00:00:00+00:00");
   const timerDiv = document.getElementById("unlockTimer");
   const btnGame = document.getElementById("btnGame");
   const btnShop = document.getElementById("btnShop");
 
   function updateUnlockTimer() {
     const now = new Date(new Date().toLocaleString("en-GB",{timeZone:"Europe/London"}));
-    let diff = unlockDate - now;
+    let diff = UNLOCK_DATE - now;
 
-    if(diff <= 0){
+    // Determine if locked or not
+    let locked = LOCKED_STATUS === "ON" && diff > 0;
+
+    // Set buttons
+    if(!locked){
       btnGame.textContent = "Game";
       btnShop.textContent = "Shop";
       btnGame.disabled = false;
       btnShop.disabled = false;
-      timerDiv.textContent = "Pages are unlocked!";
-      return;
+      if(timerDiv) timerDiv.textContent = "Pages are unlocked!";
+    } else {
+      btnGame.textContent = "Game 🔒";
+      btnShop.textContent = "Shop 🔒";
+      btnGame.disabled = true;
+      btnShop.disabled = true;
+
+      if(timerDiv){
+        const days = Math.floor(diff / (1000*60*60*24));
+        diff -= days*1000*60*60*24;
+        const hours = Math.floor(diff / (1000*60*60));
+        diff -= hours*1000*60*60;
+        const minutes = Math.floor(diff / (1000*60));
+        diff -= minutes*1000*60;
+        const seconds = Math.floor(diff / 1000);
+
+        timerDiv.textContent = `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      }
     }
-
-    btnGame.disabled = true;
-    btnShop.disabled = true;
-
-    const days = Math.floor(diff / (1000*60*60*24));
-    diff -= days*1000*60*60*24;
-    const hours = Math.floor(diff / (1000*60*60));
-    diff -= hours*1000*60*60;
-    const minutes = Math.floor(diff / (1000*60));
-    diff -= minutes*1000*60;
-    const seconds = Math.floor(diff / 1000);
-
-    timerDiv.textContent = `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
   }
   updateUnlockTimer();
   setInterval(updateUnlockTimer, 1000);
@@ -165,47 +177,9 @@ function initHeaderButtons(){
   btnHub.addEventListener("click", ()=>{ window.location.href="hub.html"; });
   btnUpside.addEventListener("click", ()=>{ window.location.href="upsidedown.html"; });
 
-  // Game/shop clicks only work if unlocked
+  // Game/shop clicks only work if enabled
   btnGame.addEventListener("click", ()=>{ if(!btnGame.disabled) window.location.href="game.html"; });
   btnShop.addEventListener("click", ()=>{ if(!btnShop.disabled) window.location.href="shop.html"; });
-}
-
-/* ------------------- ADMIN EDIT USER STATS ------------------ */
-function editUserStats(adminUser) {
-  // Only allow if current user is admin
-  const currentUserObj = USERS.find(u => u.name === adminUser);
-  if (!currentUserObj?.isAdmin) return;
-
-  const userName = prompt("Enter the name of the user you want to edit:");
-  const userObj = USERS.find(u => u.name === userName);
-  if (!userObj) {
-    alert("User not found!");
-    return;
-  }
-
-  // Get the stats object
-  const stats = JSON.parse(storage.getItem("userStats"));
-  if (!stats[userObj.name]) stats[userObj.name] = { points: 0, coins: 0, gamesPlayed: 0, xp: 0 };
-
-  const userStats = stats[userObj.name];
-
-  // Prompt admin for new values
-  const newXP = prompt(`Current XP: ${userStats.xp}. Enter new XP value:`, userStats.xp);
-  const newCoins = prompt(`Current Coins: ${userStats.coins}. Enter new Coins value:`, userStats.coins);
-  const newPoints = prompt(`Current Points: ${userStats.points}. Enter new Points value:`, userStats.points);
-  const newGames = prompt(`Current Games Played: ${userStats.gamesPlayed}. Enter new Games Played value:`, userStats.gamesPlayed);
-
-  // Update values safely (parse as integers)
-  userStats.xp = parseInt(newXP) || 0;
-  userStats.coins = parseInt(newCoins) || 0;
-  userStats.points = parseInt(newPoints) || 0;
-  userStats.gamesPlayed = parseInt(newGames) || 0;
-
-  // Save back to localStorage
-  stats[userObj.name] = userStats;
-  storage.setItem("userStats", JSON.stringify(stats));
-
-  alert(`Stats for ${userObj.name} updated successfully!`);
 }
 
 /* -------------------- BOOT ------------------------- */
