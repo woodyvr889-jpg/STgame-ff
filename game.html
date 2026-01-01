@@ -5,20 +5,119 @@
 <title>Stranger Things Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
+<style>
+  body.st-theme {
+    background-color: #8B0000; /* red background */
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  .game-shell {
+    text-align: center;
+    width: 90%;
+    max-width: 800px;
+  }
+
+  h1 { margin-bottom: 20px; }
+
+  .card {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #fff;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px 0;
+  }
+
+  .stats-box, .how-to-box, .results-box {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+  }
+
+  .square-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    grid-template-rows: repeat(2, 60px);
+    gap: 5px;
+    justify-content: center;
+    margin: 15px 0;
+  }
+
+  .square-grid button {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid #fff;
+    border-radius: 8px;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  #gameTimer {
+    font-size: 2rem;
+    margin: 15px 0;
+  }
+
+</style>
 </head>
 <body data-page="game" class="st-theme">
 
-<header class="top-header glass">
-  <h1>Stranger Things Game</h1>
-</header>
+<div class="game-shell">
+  <h1>⬅️ Stranger Things Game</h1>
 
-<main class="main-shell">
-  <section class="card glass game-area">
+  <div class="card how-to-box">
+    <h2>How to Play</h2>
+    <p>XP: Earn XP by playing the game. Avoid bombs.</p>
+    <p>Coins: Collect coins to spend in the shop.</p>
+    <p>Points: Used for bidding events and rewards.</p>
+    <p>Games Played: Tracks how many times you've played.</p>
+    <p>All stats save automatically.</p>
+    <p>Bombs 💣 = -10 coins and -10 xp (per 1)</p>
+    <p>Coins 🪙 = +25 coins + 50xp (per 1)</p>
+    <p>Clock 🕓 = [RANDOM] +10 coins or -10xp</p>
+    <p>Every day 3pm - 5pm, all results DOUBLE (except day 28 of Stranger Things 5 bid)</p>
+    <p>x2 is currently <span id="doubleStatus">On</span></p>
+  </div>
+
+  <div class="card stats-box">
+    <p>Timer: <span id="gameTimer">60</span> seconds</p>
+    <p>Stats: Bombs: <span id="bombCount">00</span> Coins: <span id="coinCount">00</span> Clocks: <span id="clockCount">00</span> XP: <span id="xpCount">0000</span></p>
+    <p>XP lost: <span id="xpLost">0000</span> Items missed: <span id="itemsMissed">00</span> Bonus XP: <span id="bonusXP">0000</span></p>
+  </div>
+
+  <div class="card square-grid" id="gameContainer">
+    <!-- 10 buttons on left -->
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <!-- 10 buttons on right -->
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+    <button class="game-btn">Start</button>
+  </div>
+
+  <div class="card">
     <button id="startGameBtn" class="btn primary">Start Game</button>
-    <div id="gameContainer" class="game-container"></div>
-    <div id="gameTimer">60</div>
-  </section>
-</main>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
