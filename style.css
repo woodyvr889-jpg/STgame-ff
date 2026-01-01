@@ -46,6 +46,6 @@ body{
 .divider{border:1px solid #ff0000; margin:1rem 0;}
 .upside-img{width:100%;border-radius:12px;}
 
-
-
-
+/* Shop grid */
+.shop-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem;}
+.shop-item{padding:1rem; background:#3a0000; border-radius:12px; text-align:center;}
