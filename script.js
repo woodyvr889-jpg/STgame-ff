@@ -14,23 +14,21 @@ const USERS = [
 
 const storage = window.localStorage;
 
-/* ---------------------- LOCK SETTINGS ------------------ */
+/* ---------------------- LOCK OVERRIDE ------------------ */
 /*
-  ON  = locked until UNLOCK_DATE
-  OFF = unlocked immediately
+  ON  = locked until date
+  OFF = unlocked immediately (ignores timer)
 */
-const LOCKED_STATUS = "OFF"; // <<< CHANGE ONLY THIS
-const UNLOCK_DATE = new Date("2026-01-05T00:00:00+00:00");
+const LOCKED_STATUS = "OFF"; // ← Change to "ON" to lock
+const UNLOCK_DATE = new Date("2026-01-05T00:00:00+00:00"); // London time
 
-/* ---------------------- LOCK LOGIC ------------------ */
-function isLockedNow(){
+// ---------------------- LOCK CHECK HELPER ------------------
+function isLockedNow() {
   if (LOCKED_STATUS === "OFF") return false;
-
-  const nowLondon = new Date(
+  const now = new Date(
     new Date().toLocaleString("en-GB", { timeZone: "Europe/London" })
   );
-
-  return nowLondon < UNLOCK_DATE;
+  return now < UNLOCK_DATE;
 }
 
 /* ---------------------- LOGIN PAGE ------------------- */
@@ -46,13 +44,13 @@ function initLoginPage() {
   let selected = null;
   let entered = "";
 
-  grid.innerHTML = USERS.map(
-    u => `<div class="user-card" data-user="${u.name}">${u.name}</div>`
-  ).join("");
+  grid.innerHTML = USERS
+    .map(u => `<div class="user-card" data-user="${u.name}">${u.name}</div>`)
+    .join("");
 
   document.querySelectorAll(".user-card").forEach(card=>{
     card.addEventListener("click", ()=>{
-      selected = USERS.find(u => u.name === card.dataset.user);
+      selected = USERS.find(u=>u.name===card.dataset.user);
       entered = "";
       keypadTitle.textContent = `Enter code for ${selected.name}`;
       display.textContent = "----";
@@ -122,8 +120,8 @@ function initHubPage(){
   const stats = JSON.parse(storage.getItem("userStats"));
   if(!stats[user]){
     stats[user] = { points:0, coins:0, gamesPlayed:0, xp:0 };
-    storage.setItem("userStats", JSON.stringify(stats));
   }
+  storage.setItem("userStats", JSON.stringify(stats));
 
   function updateStats(){
     const s = JSON.parse(storage.getItem("userStats"))[user];
@@ -144,20 +142,25 @@ function initHubPage(){
 
   initHeaderButtons();
 
-  // Lock / timer sync
+  // Unlock timer
   const timerDiv = document.getElementById("unlockTimer");
   const btnGame = document.getElementById("btnGame");
   const btnShop = document.getElementById("btnShop");
 
-  function updateUnlockUI(){
-    const locked = isLockedNow();
+  function updateUnlockTimer(){
+    const now = new Date(
+      new Date().toLocaleString("en-GB",{ timeZone:"Europe/London" })
+    );
+    let diff = UNLOCK_DATE - now;
+
+    const locked = LOCKED_STATUS === "ON" && diff > 0;
 
     if(!locked){
       btnGame.textContent = "Game";
       btnShop.textContent = "Shop";
       btnGame.disabled = false;
       btnShop.disabled = false;
-      timerDiv.textContent = "Pages are unlocked!";
+      if(timerDiv) timerDiv.textContent = "Pages are unlocked!";
       return;
     }
 
@@ -166,25 +169,22 @@ function initHubPage(){
     btnGame.disabled = true;
     btnShop.disabled = true;
 
-    const now = new Date(
-      new Date().toLocaleString("en-GB",{ timeZone:"Europe/London" })
-    );
-    let diff = UNLOCK_DATE - now;
+    if(timerDiv){
+      const days = Math.floor(diff / (1000*60*60*24));
+      diff -= days * 86400000;
+      const hours = Math.floor(diff / (1000*60*60));
+      diff -= hours * 3600000;
+      const minutes = Math.floor(diff / (1000*60));
+      diff -= minutes * 60000;
+      const seconds = Math.floor(diff / 1000);
 
-    const days = Math.floor(diff / 86400000);
-    diff -= days * 86400000;
-    const hours = Math.floor(diff / 3600000);
-    diff -= hours * 3600000;
-    const minutes = Math.floor(diff / 60000);
-    diff -= minutes * 60000;
-    const seconds = Math.floor(diff / 1000);
-
-    timerDiv.textContent =
-      `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      timerDiv.textContent =
+        `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
   }
 
-  updateUnlockUI();
-  setInterval(updateUnlockUI, 1000);
+  updateUnlockTimer();
+  setInterval(updateUnlockTimer, 1000);
 }
 
 /* ---------------------- HEADER BUTTONS ------------------- */
@@ -208,12 +208,21 @@ function initHeaderButtons(){
     window.location.href = "upsidedown.html";
   });
 
+  // FIXED: Start Game & Shop buttons now check lock properly
   btnGame.addEventListener("click", ()=>{
-    if(!isLockedNow()) window.location.href = "game.html";
+    if(isLockedNow()){
+      alert("The game is currently locked.");
+      return;
+    }
+    window.location.href = "game.html";
   });
 
   btnShop.addEventListener("click", ()=>{
-    if(!isLockedNow()) window.location.href = "shop.html";
+    if(isLockedNow()){
+      alert("The shop is currently locked.");
+      return;
+    }
+    window.location.href = "shop.html";
   });
 }
 
