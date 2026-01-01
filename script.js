@@ -75,44 +75,6 @@ function initLoginPage() {
   });
 }
 
-/* ---------------------- HUB NAVIGATION ------------------- */
-function initHeaderButtons(){
-  const user = storage.getItem("currentUser");
-  if(!user) return;
-
-  const stats = JSON.parse(storage.getItem("userStats"))[user];
-  const currentUserObj = USERS.find(u=>u.name===user);
-
-  const btnGame = document.getElementById("btnGame");
-  const btnShop = document.getElementById("btnShop");
-  const btnHub  = document.getElementById("btnHub");
-  const btnUpside = document.getElementById("btnUpsideDown");
-  const btnLogout = document.getElementById("btnLogout");
-
-  if(currentUserObj?.isAdmin){
-    btnGame.textContent = "Game";
-    btnShop.textContent = "Shop";
-  }
-
-  btnLogout.addEventListener("click", ()=>{
-    storage.removeItem("currentUser");
-    window.location.href="index.html";
-  });
-
-  btnGame.addEventListener("click", ()=>{
-    if(!currentUserObj.isAdmin){ alert("Page locked 🔒"); return; }
-    window.location.href="game.html";
-  });
-
-  btnShop.addEventListener("click", ()=>{
-    if(!currentUserObj.isAdmin){ alert("Page locked 🔒"); return; }
-    window.location.href="shop.html";
-  });
-
-  btnHub.addEventListener("click", ()=>{ window.location.href="hub.html"; });
-  btnUpside.addEventListener("click", ()=>{ window.location.href="upsidedown.html"; });
-}
-
 /* ---------------------- HUB PAGE ------------------- */
 function initHubPage(){
   const user = storage.getItem("currentUser");
@@ -131,7 +93,6 @@ function initHubPage(){
     document.getElementById("userGamesPlayed").textContent = s.gamesPlayed;
     document.getElementById("userXP").textContent = s.xp;
   }
-
   updateStats();
 
   const clock = document.getElementById("londonClock");
@@ -142,6 +103,7 @@ function initHubPage(){
 
   initHeaderButtons();
 
+  // Explainer section
   const mainShell = document.querySelector(".main-shell");
   const expl = document.createElement("section");
   expl.className="card glass";
@@ -154,40 +116,63 @@ function initHubPage(){
     <p>All stats auto-save and update in real-time.</p>
   `;
   mainShell.appendChild(expl);
+
+  // Countdown timer for shop/game unlock
+  const unlockDate = new Date("2026-01-05T00:00:00+00:00");
+  const timerDiv = document.getElementById("unlockTimer");
+  const btnGame = document.getElementById("btnGame");
+  const btnShop = document.getElementById("btnShop");
+
+  function updateUnlockTimer() {
+    const now = new Date(new Date().toLocaleString("en-GB",{timeZone:"Europe/London"}));
+    let diff = unlockDate - now;
+
+    if(diff <= 0){
+      btnGame.textContent = "Game";
+      btnShop.textContent = "Shop";
+      btnGame.disabled = false;
+      btnShop.disabled = false;
+      timerDiv.textContent = "Pages are unlocked!";
+      return;
+    }
+
+    btnGame.disabled = true;
+    btnShop.disabled = true;
+
+    const days = Math.floor(diff / (1000*60*60*24));
+    diff -= days*1000*60*60*24;
+    const hours = Math.floor(diff / (1000*60*60));
+    diff -= hours*1000*60*60;
+    const minutes = Math.floor(diff / (1000*60));
+    diff -= minutes*1000*60;
+    const seconds = Math.floor(diff / 1000);
+
+    timerDiv.textContent = `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+  }
+  updateUnlockTimer();
+  setInterval(updateUnlockTimer, 1000);
 }
 
-/* -------------------- GAME PAGE -------------------- */
-function initGamePage(){
-  const user = storage.getItem("currentUser");
-  if(!user) window.location.href="index.html";
+/* ---------------------- HEADER BUTTONS ------------------- */
+function initHeaderButtons(){
+  const btnGame = document.getElementById("btnGame");
+  const btnShop = document.getElementById("btnShop");
+  const btnHub = document.getElementById("btnHub");
+  const btnUpside = document.getElementById("btnUpsideDown");
+  const btnLogout = document.getElementById("btnLogout");
 
-  const currentUserObj = USERS.find(u=>u.name===user);
-  if(!currentUserObj.isAdmin){ alert("Game page locked 🔒"); window.location.href="hub.html"; return; }
+  btnLogout.addEventListener("click", ()=>{ storage.removeItem("currentUser"); window.location.href="index.html"; });
+  btnHub.addEventListener("click", ()=>{ window.location.href="hub.html"; });
+  btnUpside.addEventListener("click", ()=>{ window.location.href="upsidedown.html"; });
 
-  const startBtn = document.getElementById("startGameBtn");
-  const container = document.getElementById("gameContainer");
-  const timerDisplay = document.getElementById("gameTimer");
+  // Game/shop clicks only work if unlocked
+  btnGame.addEventListener("click", ()=>{ if(!btnGame.disabled) window.location.href="game.html"; });
+  btnShop.addEventListener("click", ()=>{ if(!btnShop.disabled) window.location.href="shop.html"; });
+}
 
-  let gameInterval, timeLeft=60;
-
-  startBtn.addEventListener("click", ()=>{
-    startBtn.disabled=true;
-    container.innerHTML="";
-    timeLeft=60;
-    timerDisplay.textContent=timeLeft;
-
-    const gameStats = JSON.parse(storage.getItem("userStats"))[user];
-
-    gameInterval = setInterval(()=>{
-      timerDisplay.textContent=timeLeft;
-      if(timeLeft<=0){ clearInterval(gameInterval); endGame(); }
-      timeLeft--;
-      spawnItem();
-    },1000);
-
-    function spawnItem(){
-      const types = ["head","coin","bomb"];
-      const typeWeights = [0.5,0.4,0.1];
-      const rand = Math.random();
-      let cum = 0; let type;
-      for(let i=0;i
+/* -------------------- BOOT ------------------------- */
+document.addEventListener("DOMContentLoaded", ()=>{
+  const page = document.body.dataset.page;
+  if(page==="login") initLoginPage();
+  if(page==="hub") initHubPage();
+});
