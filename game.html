@@ -6,62 +6,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
 <style>
-  body.st-theme {
-    background-color: #8B0000; /* red background */
-    color: #fff;
-    font-family: 'Arial', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-  }
+body.st-theme {
+  background-color: #8B0000;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
 
-  .game-shell {
-    text-align: center;
-    width: 90%;
-    max-width: 800px;
-  }
+.game-shell {
+  text-align: center;
+  width: 90%;
+  max-width: 900px;
+}
 
-  h1 { margin-bottom: 20px; }
+.card {
+  background: rgba(0,0,0,0.5);
+  border: 2px solid #fff;
+  border-radius: 12px;
+  padding: 15px;
+  margin: 10px 0;
+}
 
-  .card {
-    background: rgba(0,0,0,0.5);
-    border: 2px solid #fff;
-    border-radius: 12px;
-    padding: 15px;
-    margin: 10px 0;
-  }
+.stats-box, .how-to-box, .results-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+}
 
-  .stats-box, .how-to-box, .results-box {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    text-align: center;
-  }
+.square-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  grid-template-rows: repeat(4, 60px);
+  gap: 5px;
+  justify-content: center;
+  margin: 15px 0;
+}
 
-  .square-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 60px);
-    grid-template-rows: repeat(2, 60px);
-    gap: 5px;
-    justify-content: center;
-    margin: 15px 0;
-  }
+.square-grid button {
+  background: rgba(255,255,255,0.1);
+  border: 2px solid #fff;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  position: relative;
+}
 
-  .square-grid button {
-    background: rgba(255,255,255,0.1);
-    border: 2px solid #fff;
-    border-radius: 8px;
-    font-size: 1.5rem;
-    cursor: pointer;
-  }
+#gameTimer {
+  font-size: 2rem;
+  margin: 15px 0;
+}
 
-  #gameTimer {
-    font-size: 2rem;
-    margin: 15px 0;
-  }
+.floating-text {
+  position: absolute;
+  font-weight: bold;
+  animation: floatUp 1s forwards;
+}
 
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-30px); }
+}
 </style>
 </head>
 <body data-page="game" class="st-theme">
@@ -76,9 +85,9 @@
     <p>Points: Used for bidding events and rewards.</p>
     <p>Games Played: Tracks how many times you've played.</p>
     <p>All stats save automatically.</p>
-    <p>Bombs 💣 = -10 coins and -10 xp (per 1)</p>
-    <p>Coins 🪙 = +25 coins + 50xp (per 1)</p>
-    <p>Clock 🕓 = [RANDOM] +10 coins or -10xp</p>
+    <p>Bombs 💣 = -10 coins and -10 XP (per 1)</p>
+    <p>Coins 🪙 = +25 coins +50 XP (per 1)</p>
+    <p>Clock 🕓 = [RANDOM] +10 coins or -10 XP</p>
     <p>Every day 3pm - 5pm, all results DOUBLE (except day 28 of Stranger Things 5 bid)</p>
     <p>x2 is currently <span id="doubleStatus">On</span></p>
   </div>
@@ -90,28 +99,7 @@
   </div>
 
   <div class="card square-grid" id="gameContainer">
-    <!-- 10 buttons on left -->
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <!-- 10 buttons on right -->
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
-    <button class="game-btn">Start</button>
+    <!-- Grid items dynamically generated -->
   </div>
 
   <div class="card">
