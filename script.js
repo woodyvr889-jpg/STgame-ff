@@ -52,8 +52,29 @@ function loadLogin() {
 
   profilesDiv.innerHTML = "";
 
-  // Populate login profiles from all users
-  Object.keys(store.users).forEach(u => {
+  // Alphabetical list of all members
+  const members = [
+    "Dad",
+    "Grandad Darren",
+    "Grandad Steve",
+    "Grandma Jean",
+    "James",
+    "Mum",
+    "Nannan",
+    "Uncle Paul"
+  ];
+
+  // Ensure all members exist in store.users
+  members.forEach(name => {
+    if (!store.users[name]) {
+      store.users[name] = { coins: 100, points: 50, xp: 0, gamesPlayed: 0 };
+    }
+  });
+
+  saveAll();
+
+  // Populate login profiles from all users in alphabetical order
+  members.forEach(u => {
     const card = document.createElement("div");
     card.className = "user-card";
     card.textContent = u;
