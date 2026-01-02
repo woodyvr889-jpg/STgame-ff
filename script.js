@@ -102,7 +102,7 @@ function loadLogin() {
   document.querySelectorAll(".key-btn").forEach(btn => {
     btn.onclick = () => {
       if (btn.dataset.num !== undefined) {
-        if (code.length < 4) code += btn.dataset.num;
+        if (code.length < 8) code += btn.dataset.num;
       } else if (btn.dataset.action === "clear") {
         code = "";
       } else if (btn.dataset.action === "enter") {
