@@ -133,14 +133,11 @@ function initHubPage() {
   }
   updateStats();
 
-  // London clock
   const clock = document.getElementById("londonClock");
   if (clock) setInterval(() => clock.textContent = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" }), 1000);
 
-  // Header buttons
   initHeaderButtons();
 
-  // Unlock timer for Game & Shop
   const timerDiv = document.getElementById("unlockTimer");
   const btnGame = document.getElementById("btnGame");
   const btnShop = document.getElementById("btnShop");
@@ -300,6 +297,64 @@ function initGamePage() {
   });
 }
 
+/* ---------------------- SHOP PAGE ------------------- */
+function initShopPage() {
+  const user = storage.getItem("currentUser");
+  if (!user) { window.location.href = "index.html"; return; }
+
+  const shopContainer = document.getElementById("shopContainer");
+  const coinDisplay = document.getElementById("shopCoins");
+  const backBtn = document.getElementById("backToHub");
+
+  if (!shopContainer || !coinDisplay || !backBtn) return;
+
+  const allStats = JSON.parse(storage.getItem("userStats") || "{}");
+  if (!allStats[user]) allStats[user] = { points: 0, coins: 0, gamesPlayed: 0, xp: 0 };
+  storage.setItem("userStats", JSON.stringify(allStats));
+
+  function updateCoins() {
+    const coins = JSON.parse(storage.getItem("userStats"))[user].coins;
+    coinDisplay.textContent = coins;
+  }
+
+  updateCoins();
+
+  const shopItems = [
+    { name: "Extra Life", price: 100 },
+    { name: "Double Coins", price: 200 },
+    { name: "XP Boost", price: 150 }
+  ];
+
+  shopContainer.innerHTML = "";
+  shopItems.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "shop-item";
+    div.innerHTML = `
+      <span class="item-name">${item.name}</span>
+      <span class="item-price">${item.price} coins</span>
+      <button class="buy-btn">Buy</button>
+    `;
+    const btn = div.querySelector(".buy-btn");
+    btn.addEventListener("click", () => {
+      const stats = JSON.parse(storage.getItem("userStats"));
+      const coins = stats[user].coins;
+      if (coins >= item.price) {
+        stats[user].coins -= item.price;
+        storage.setItem("userStats", JSON.stringify(stats));
+        alert(`Purchased ${item.name}!`);
+        updateCoins();
+      } else {
+        alert("Not enough coins!");
+      }
+    });
+    shopContainer.appendChild(div);
+  });
+
+  backBtn.addEventListener("click", () => {
+    window.location.href = "hub.html";
+  });
+}
+
 /* ------------------ HEADER BUTTONS ------------------ */
 function initHeaderButtons() {
   const btnGame = document.getElementById("btnGame");
@@ -321,4 +376,5 @@ document.addEventListener("DOMContentLoaded", () => {
   if (page === "login") initLoginPage();
   if (page === "hub") initHubPage();
   if (page === "game") initGamePage();
+  if (page === "shop") initShopPage();
 });
