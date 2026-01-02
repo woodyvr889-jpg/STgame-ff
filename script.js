@@ -31,11 +31,13 @@ function saveAll() {
   localStorage.setItem("settings", JSON.stringify(store.settings));
 }
 
-// Ensure admin exists
-if (!store.users[ADMIN_NAME]) {
-  store.users[ADMIN_NAME] = { coins: 1000, points: 500, xp: 0, gamesPlayed: 0 };
-  saveAll();
-}
+// Ensure all members exist in store.users
+Object.keys(USER_CODES).forEach(name => {
+  if (!store.users[name]) {
+    store.users[name] = { coins: 100, points: 50, xp: 0, gamesPlayed: 0 };
+  }
+});
+saveAll();
 
 /*************************
   AUTH + GUARDS
@@ -63,28 +65,10 @@ function loadLogin() {
 
   profilesDiv.innerHTML = "";
 
-  // Alphabetical list of all members
-  const members = [
-    "Dad",
-    "Grandad Darren",
-    "Grandad Steve",
-    "Grandma Jean",
-    "James",
-    "Mum",
-    "Nannan",
-    "Uncle Paul"
-  ];
+  // Alphabetical order of members
+  const members = Object.keys(USER_CODES).sort();
 
-  // Ensure all members exist in store.users
-  members.forEach(name => {
-    if (!store.users[name]) {
-      store.users[name] = { coins: 100, points: 50, xp: 0, gamesPlayed: 0 };
-    }
-  });
-
-  saveAll();
-
-  // Populate login profiles from all users in alphabetical order
+  // Populate login profiles
   members.forEach(u => {
     const card = document.createElement("div");
     card.className = "user-card";
@@ -93,6 +77,9 @@ function loadLogin() {
       store.tempUser = u;
       profilesDiv.classList.add("hidden");
       keypadSection.classList.remove("hidden");
+      code = "";
+      keypadDisplay.textContent = "----";
+      loginError.textContent = "";
     };
     profilesDiv.appendChild(card);
   });
@@ -102,17 +89,19 @@ function loadLogin() {
   document.querySelectorAll(".key-btn").forEach(btn => {
     btn.onclick = () => {
       if (btn.dataset.num !== undefined) {
-        if (code.length < 8) code += btn.dataset.num;
+        if (code.length < 8) code += btn.dataset.num; // max 8 digits
       } else if (btn.dataset.action === "clear") {
         code = "";
       } else if (btn.dataset.action === "enter") {
         if (USER_CODES[store.tempUser] === code) {
-  store.currentUser = store.tempUser;
-  saveAll();
-  window.location.href = "hub.html";
-} else {
-  loginError.textContent = "Wrong code!";
+          store.currentUser = store.tempUser;
+          saveAll();
+          window.location.href = "hub.html";
+        } else {
+          loginError.textContent = "Wrong code!";
         }
+        code = "";
+      }
       keypadDisplay.textContent = code.padEnd(4, "-");
     };
   });
@@ -133,7 +122,6 @@ function wireNav() {
   const go = (id, page) => {
     const b = document.getElementById(id);
     if (b) b.onclick = () => {
-      // Check admin locks
       if (page === "game" && store.settings.gameLocked) {
         alert("Game page is locked by admin.");
         return;
