@@ -47,7 +47,6 @@ function initLoginPage() {
   let selectedUser = null;
   let enteredCode = "";
 
-  // Render profiles
   grid.innerHTML = "";
   USERS.forEach(user => {
     const div = document.createElement("div");
@@ -68,9 +67,7 @@ function initLoginPage() {
 
   function updateDisplay() {
     if (!selectedUser) return;
-    display.textContent = enteredCode
-      .replace(/./g, "●")
-      .padEnd(selectedUser.code.length, "-");
+    display.textContent = enteredCode.replace(/./g, "●").padEnd(selectedUser.code.length, "-");
   }
 
   document.querySelectorAll(".key-btn").forEach(btn => {
@@ -177,6 +174,7 @@ function initGamePage() {
   if (!user) { window.location.href = "index.html"; return; }
 
   const startBtn = document.getElementById("startGameBtn");
+  const backBtn = document.getElementById("backToHub"); // Back button
   const gameContainer = document.getElementById("gameContainer");
   const timerEl = document.getElementById("gameTimer");
   const bombCount = document.getElementById("bombCount");
@@ -217,10 +215,15 @@ function initGamePage() {
     const item = items[Math.floor(Math.random() * items.length)];
     const btn = document.createElement("button");
     btn.textContent = item.icon;
-    btn.style.position = "relative";
+    btn.style.position = "absolute";
     btn.style.fontSize = "2rem";
-    btn.style.margin = "5px";
     btn.style.cursor = "pointer";
+
+    const maxX = gameContainer.clientWidth - 40;
+    const maxY = gameContainer.clientHeight - 40;
+    btn.style.left = Math.floor(Math.random() * maxX) + "px";
+    btn.style.top = Math.floor(Math.random() * maxY) + "px";
+
     gameContainer.appendChild(btn);
 
     const multiplier = isDoubleTime() ? 2 : 1;
@@ -234,48 +237,44 @@ function initGamePage() {
       if (clicked) return;
       clicked = true; clearTimeout(timeout);
 
-      if (item.type === "bomb") {
-        stats.bombs++; stats.xpLost += Math.abs(item.xp) * multiplier;
-        showFloatingText(btn, "-" + Math.abs(item.xp) * multiplier, item.color);
-      }
-      if (item.type === "coin") {
-        stats.coins++; stats.xp += item.xp * multiplier;
-        showFloatingText(btn, "+" + item.xp * multiplier, item.color);
-      }
-      if (item.type === "clock") {
-        stats.clocks++; stats.xp += item.xp * multiplier;
-        showFloatingText(btn, (item.xp > 0 ? "+" : "") + item.xp * multiplier, item.color);
-      }
+      let floatingText = "";
+      if (item.type === "bomb") { stats.bombs++; stats.xpLost += Math.abs(item.xp) * multiplier; floatingText = "-" + Math.abs(item.xp) * multiplier + " XP"; }
+      if (item.type === "coin") { stats.coins++; stats.xp += item.xp * multiplier; floatingText = "+" + item.xp * multiplier + " coins/XP"; }
+      if (item.type === "clock") { stats.clocks++; stats.xp += item.xp * multiplier; floatingText = (item.xp > 0 ? "+" : "") + item.xp * multiplier + " XP"; }
 
+      showFloatingText(btn, floatingText, item.color, 2000);
       updateStatsDisplay();
-      btn.remove();
+      setTimeout(() => btn.remove(), 200);
     });
   }
 
-  function showFloatingText(parent, text, color) {
+  function showFloatingText(parent, text, color, duration = 1000) {
     const span = document.createElement("span");
     span.className = "floating-text";
     span.textContent = text;
     span.style.color = color;
     span.style.position = "absolute";
-    span.style.top = "0";
+    span.style.top = "-20px";
     span.style.left = "50%";
     span.style.transform = "translateX(-50%)";
     span.style.fontWeight = "bold";
-    span.style.animation = "floatUp 1s ease-out forwards";
+    span.style.pointerEvents = "none";
+    span.style.transition = `all ${duration / 1000}s ease-out`;
     parent.appendChild(span);
-    setTimeout(() => span.remove(), 1000);
+
+    setTimeout(() => { span.style.top = "-50px"; span.style.opacity = 0; }, 50);
+    setTimeout(() => span.remove(), duration);
   }
 
   function startGame() {
     resetGame();
     startBtn.disabled = true;
+
     timerInterval = setInterval(() => {
       timeLeft--;
       timerEl.textContent = timeLeft;
 
-      const spawnCount = Math.floor(Math.random() * 3) + 1; // spawn 1-3 items per second
-      for (let i = 0; i < spawnCount; i++) spawnItem();
+      if (Math.random() < 0.4) spawnItem();
 
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
@@ -295,6 +294,13 @@ function initGamePage() {
     if (isLockedNow()) { alert("The game is locked!"); return; }
     startGame();
   });
+
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      if (timerInterval) clearInterval(timerInterval);
+      window.location.href = "hub.html";
+    });
+  }
 }
 
 /* ---------------------- SHOP PAGE ------------------- */
