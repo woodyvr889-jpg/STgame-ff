@@ -5,49 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shop</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    #shopContainer {
-      max-width: 600px;
-      margin: 20px auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .shop-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid #333;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    .shop-item button {
-      padding: 5px 10px;
-      cursor: pointer;
-    }
-    #shopCoins {
-      font-weight: bold;
-    }
-    #controls {
-      text-align: center;
-      margin-top: 15px;
-    }
-    #controls button {
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-  </style>
 </head>
 <body>
+  <header>
+    <h1>Shop</h1>
+    <button id="btnHub">Hub</button>
+    <button id="btnLogout">Logout</button>
+  </header>
 
-  <h1 style="text-align:center">Shop</h1>
-  <p style="text-align:center">Your Coins: <span id="shopCoins">0</span></p>
+  <main>
+    <div>Coins: <span id="shopCoins">0</span></div>
 
-  <div id="shopContainer"></div>
+    <div id="shopContainer" class="shop-box">
+      <!-- Items hardcoded in HTML for now -->
+      <div class="shop-item">
+        <span class="item-name">Extra Life</span>
+        <span class="item-price">100 coins</span>
+        <button class="request-buy-btn" data-item="Extra Life" data-price="100">Request to Buy</button>
+      </div>
+      <div class="shop-item">
+        <span class="item-name">Double Coins</span>
+        <span class="item-price">200 coins</span>
+        <button class="request-buy-btn" data-item="Double Coins" data-price="200">Request to Buy</button>
+      </div>
+      <div class="shop-item">
+        <span class="item-name">XP Boost</span>
+        <span class="item-price">150 coins</span>
+        <button class="request-buy-btn" data-item="XP Boost" data-price="150">Request to Buy</button>
+      </div>
+    </div>
 
-  <div id="controls">
     <button id="backToHub">Back to Hub</button>
-  </div>
+  </main>
 
   <script src="script.js"></script>
 </body>
