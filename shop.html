@@ -1,42 +1,44 @@
 <!DOCTYPE html>
-<html lang="en" data-page="shop">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Stranger Things Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <header>
-    <h1>Shop</h1>
+<body data-page="shop" class="st-theme">
+
+<header class="top-header glass compact">
+  <h1 class="app-title">Stranger Things Shop</h1>
+  <nav class="nav-buttons glass">
     <button id="btnHub">Hub</button>
     <button id="btnLogout">Logout</button>
-  </header>
+  </nav>
+</header>
 
-  <main>
-    <div>Coins: <span id="shopCoins">0</span></div>
+<main class="main-shell">
+  <section class="card glass">
+    <h2>Your Coins: <span id="shopCoins"></span></h2>
+  </section>
 
-    <div id="shopContainer" class="shop-box">
-      <div class="shop-item">
-        <span class="item-name">Extra Life</span>
-        <span class="item-price">100 coins</span>
-        <button class="request-buy-btn" data-item="Extra Life" data-price="100">Request to Buy</button>
+  <section class="card glass">
+    <h2>Items</h2>
+    <div class="shop-items">
+      <div class="shop-item card glass">
+        <p class="item-name">Stranger Hat</p>
+        <p>Price: 50 coins</p>
+        <button class="request-buy-btn" data-item="Stranger Hat" data-price="50">Buy</button>
       </div>
-      <div class="shop-item">
-        <span class="item-name">Double Coins</span>
-        <span class="item-price">200 coins</span>
-        <button class="request-buy-btn" data-item="Double Coins" data-price="200">Request to Buy</button>
+      <div class="shop-item card glass">
+        <p class="item-name">Demogorgon Poster</p>
+        <p>Price: 75 coins</p>
+        <button class="request-buy-btn" data-item="Demogorgon Poster" data-price="75">Buy</button>
       </div>
-      <div class="shop-item">
-        <span class="item-name">XP Boost</span>
-        <span class="item-price">150 coins</span>
-        <button class="request-buy-btn" data-item="XP Boost" data-price="150">Request to Buy</button>
-      </div>
+      <!-- Add more items here -->
     </div>
+  </section>
+</main>
 
-    <button id="backToHub">Back to Hub</button>
-  </main>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
