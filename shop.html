@@ -6,28 +6,48 @@
   <title>Shop</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    #shopContainer {
+      max-width: 600px;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
     .shop-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
       border: 1px solid #333;
-      margin-bottom: 10px;
+      padding: 10px;
       border-radius: 5px;
     }
-    .buy-btn {
+    .shop-item button {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    #shopCoins {
+      font-weight: bold;
+    }
+    #controls {
+      text-align: center;
+      margin-top: 15px;
+    }
+    #controls button {
+      padding: 8px 12px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Shop</h1>
-    <button id="backToHub">Back to Hub</button>
-    <div>Coins: <span id="shopCoins">0</span></div>
-  </header>
 
-  <section id="shopContainer"></section>
+  <h1 style="text-align:center">Shop</h1>
+  <p style="text-align:center">Your Coins: <span id="shopCoins">0</span></p>
+
+  <div id="shopContainer"></div>
+
+  <div id="controls">
+    <button id="backToHub">Back to Hub</button>
+  </div>
 
   <script src="script.js"></script>
 </body>
