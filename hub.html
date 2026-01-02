@@ -8,19 +8,16 @@
 </head>
 <body data-page="hub" class="st-theme">
 
-<div id="toastContainer" class="toast-container"></div>
-
 <header class="top-header glass">
   <h1 class="app-title">Stranger Things Game</h1>
   <p class="header-sub">Designed by FundsFlow</p>
   <small id="londonClock"></small>
-  <div id="unlockTimer" class="small muted"></div>
   <div class="header-buttons">
     <button id="btnLogout" class="btn danger">Logout</button>
-    <button id="btnGame" class="btn primary" disabled>Game 🔒</button>
-    <button id="btnHub" class="btn main">Hub</button>
-    <button id="btnShop" class="btn secondary" disabled>Shop 🔒</button>
+    <button id="btnGame" class="btn primary">Game</button>
+    <button id="btnShop" class="btn secondary">Shop</button>
     <button id="btnUpsideDown" class="btn ghost">The Upside Down</button>
+    <button id="btnAdmin" class="btn main">Admin</button>
   </div>
 </header>
 
@@ -28,8 +25,6 @@
   <section class="card glass">
     <h2>Welcome, <span id="hubUserName"></span></h2>
   </section>
-
-  <section id="notificationPopup" class="card glass hidden"></section>
 
   <section class="card glass stats">
     <h2>Your Currency & Stats</h2>
