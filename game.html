@@ -1,41 +1,28 @@
 <!DOCTYPE html>
-<html lang="en" data-page="game">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Stranger Things Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <header>
-    <h1>Game Page</h1>
+<body data-page="game" class="st-theme">
+
+<header class="top-header glass compact">
+  <h1 class="app-title">Game</h1>
+  <nav class="nav-buttons glass">
     <button id="btnHub">Hub</button>
     <button id="btnLogout">Logout</button>
-  </header>
+  </nav>
+</header>
 
-  <main>
-    <div class="game-container-wrapper">
-      <div class="stats-box" id="statsBoxes">
-        <div class="stat red-box">Bombs: <span id="bombCount">00</span></div>
-        <div class="stat red-box">Coins: <span id="coinCount">00</span></div>
-        <div class="stat red-box">Clocks: <span id="clockCount">00</span></div>
-        <div class="stat red-box">XP: <span id="xpCount">0000</span></div>
-        <div class="stat red-box">XP Lost: <span id="xpLost">0000</span></div>
-        <div class="stat red-box">Items Missed: <span id="itemsMissed">00</span></div>
-        <div class="stat red-box">Bonus XP: <span id="bonusXP">0000</span></div>
-      </div>
+<main class="main-shell">
+  <section class="card glass">
+    <h2>Ready to Play?</h2>
+    <button id="startGameBtn" class="btn primary">Start Game</button>
+  </section>
+</main>
 
-      <div id="gameContainer" class="game-box"></div>
-
-      <div class="controls">
-        <button id="startGameBtn">Start Game</button>
-        <button id="backToHub">Back to Hub</button>
-      </div>
-
-      <div>Timer: <span id="gameTimer">60</span></div>
-    </div>
-  </main>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
