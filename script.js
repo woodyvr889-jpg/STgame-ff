@@ -29,47 +29,89 @@ function isDoubleTime(){
   return month===1 && day>=5 && day<=31 && hour>=15 && hour<17;
 }
 
-/* ---------- LOGIN PAGE ---------- */
-function initLoginPage(){
-  const grid=document.getElementById("loginProfiles");
-  const keypad=document.getElementById("keypadSection");
-  const profilesCard=document.getElementById("profilesCard");
-  const display=document.getElementById("keypadDisplay");
-  const keypadTitle=document.getElementById("keypadTitle");
-  const error=document.getElementById("loginError");
-  const back=document.getElementById("backToProfiles");
+/* ---------------------- LOGIN PAGE ------------------- */
+function initLoginPage() {
+  const grid = document.getElementById("loginProfiles");
+  const keypad = document.getElementById("keypadSection");
+  const profilesCard = document.getElementById("profilesCard");
+  const display = document.getElementById("keypadDisplay");
+  const keypadTitle = document.getElementById("keypadTitle");
+  const error = document.getElementById("loginError");
+  const back = document.getElementById("backToProfiles");
 
-  let selected=null, entered="";
+  if (!grid) return console.error("loginProfiles element missing");
 
-  USERS.forEach(u=>{
-    const div=document.createElement("div");
-    div.className="user-card";
-    div.dataset.user=u.name;
-    div.textContent=u.name;
-    div.addEventListener("click",()=>{
-      selected=u; entered=""; keypadTitle.textContent=`Enter code for ${selected.name}`;
-      display.textContent="----"; keypad.classList.remove("hidden"); profilesCard.classList.add("hidden"); error.textContent="";
+  let selectedUser = null;
+  let enteredCode = "";
+
+  // Render profile cards
+  grid.innerHTML = ""; // Clear first
+  USERS.forEach(user => {
+    const div = document.createElement("div");
+    div.className = "user-card";
+    div.textContent = user.name;
+    div.dataset.user = user.name;
+    div.addEventListener("click", () => {
+      selectedUser = user;
+      enteredCode = "";
+      keypadTitle.textContent = `Enter code for ${selectedUser.name}`;
+      display.textContent = "----";
+      keypad.classList.remove("hidden");
+      profilesCard.classList.add("hidden");
+      error.textContent = "";
     });
     grid.appendChild(div);
   });
 
-  function updateDisplay(){ display.textContent=entered.replace(/./g,"●").padEnd(selected?selected.code.length:4,"-"); }
+  function updateDisplay() {
+    if (!selectedUser) return;
+    display.textContent = enteredCode
+      .replace(/./g, "●")
+      .padEnd(selectedUser.code.length, "-");
+  }
 
-  document.querySelectorAll(".key-btn").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      if(!selected) return;
-      const n=btn.dataset.num, action=btn.dataset.action;
-      if(action==="clear"){ entered=""; updateDisplay(); return; }
-      if(action==="enter"){
-        if(entered===selected.code){ storage.setItem("currentUser",selected.name); window.location.href="hub.html"; }
-        else{ error.textContent="Wrong code"; entered=""; updateDisplay(); }
+  // Keypad button logic
+  document.querySelectorAll(".key-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!selectedUser) return;
+
+      const num = btn.dataset.num;
+      const action = btn.dataset.action;
+
+      if (action === "clear") {
+        enteredCode = "";
+        updateDisplay();
         return;
       }
-      if(n && entered.length<selected.code.length){ entered+=n; updateDisplay(); }
+
+      if (action === "enter") {
+        if (enteredCode === selectedUser.code) {
+          localStorage.setItem("currentUser", selectedUser.name);
+          window.location.href = "hub.html";
+        } else {
+          error.textContent = "Wrong code";
+          enteredCode = "";
+          updateDisplay();
+        }
+        return;
+      }
+
+      if (num && enteredCode.length < selectedUser.code.length) {
+        enteredCode += num;
+        updateDisplay();
+      }
     });
   });
 
-  back.addEventListener("click",()=>{ keypad.classList.add("hidden"); profilesCard.classList.remove("hidden"); });
+  // Back button
+  back.addEventListener("click", () => {
+    keypad.classList.add("hidden");
+    profilesCard.classList.remove("hidden");
+    enteredCode = "";
+    selectedUser = null;
+    updateDisplay();
+    error.textContent = "";
+  });
 }
 
 /* ---------- HUB PAGE ---------- */
