@@ -20,6 +20,12 @@ function saveAll() {
   localStorage.setItem("settings", JSON.stringify(store.settings));
 }
 
+// Ensure admin exists
+if (!store.users[ADMIN_NAME]) {
+  store.users[ADMIN_NAME] = { coins: 1000, points: 500, xp: 0, gamesPlayed: 0 };
+  saveAll();
+}
+
 /*************************
   AUTH + GUARDS
 **************************/
@@ -44,15 +50,9 @@ function loadLogin() {
   const keypadDisplay = document.getElementById("keypadDisplay");
   const loginError = document.getElementById("loginError");
 
-  // Example default users
-  if (!store.users[ADMIN_NAME]) {
-    store.users[ADMIN_NAME] = { coins: 1000, points: 500, xp: 0, gamesPlayed: 0 };
-    store.users["Player1"] = { coins: 100, points: 50, xp: 0, gamesPlayed: 0 };
-    store.users["Player2"] = { coins: 150, points: 30, xp: 0, gamesPlayed: 0 };
-    saveAll();
-  }
-
   profilesDiv.innerHTML = "";
+
+  // Populate login profiles from all users
   Object.keys(store.users).forEach(u => {
     const card = document.createElement("div");
     card.className = "user-card";
@@ -74,8 +74,7 @@ function loadLogin() {
       } else if (btn.dataset.action === "clear") {
         code = "";
       } else if (btn.dataset.action === "enter") {
-        // simple code: '1234' unlocks anything
-        if (code === "1234") {
+        if (code === "1234") { // default code for all users
           store.currentUser = store.tempUser;
           saveAll();
           window.location.href = "hub.html";
@@ -104,7 +103,7 @@ function wireNav() {
   const go = (id, page) => {
     const b = document.getElementById(id);
     if (b) b.onclick = () => {
-      // Check locks for Game/Shop
+      // Check admin locks
       if (page === "game" && store.settings.gameLocked) {
         alert("Game page is locked by admin.");
         return;
@@ -122,7 +121,6 @@ function wireNav() {
   go("btnShop", "shop.html");
   go("btnAdmin", "admin.html");
   go("btnUpsideDown", "upsidedown.html");
-  go("btnAdmin", "admin.html");
   go("btnRecords", "records.html");
 
   const logout = document.getElementById("btnLogout");
@@ -133,9 +131,6 @@ function wireNav() {
 
   const backToHub = document.getElementById("backToHub");
   if (backToHub) backToHub.onclick = () => window.location.href = "hub.html";
-
-  const btnAdminPage = document.getElementById("btnAdmin");
-  if (btnAdminPage) btnAdminPage.onclick = () => window.location.href = "admin.html";
 }
 
 /*************************
