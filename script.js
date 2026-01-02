@@ -8,7 +8,9 @@ const store = {
   currentUser: localStorage.getItem("currentUser") || null,
   purchaseRequests: JSON.parse(localStorage.getItem("purchaseRequests")) || [],
   settings: JSON.parse(localStorage.getItem("settings")) || {
-    onePlayOnly: false
+    onePlayOnly: false,
+    gameLocked: false,
+    shopLocked: false
   }
 };
 
@@ -34,38 +36,114 @@ function requireAdmin() {
 }
 
 /*************************
+  LOGIN PAGE
+**************************/
+function loadLogin() {
+  const profilesDiv = document.getElementById("loginProfiles");
+  const keypadSection = document.getElementById("keypadSection");
+  const keypadDisplay = document.getElementById("keypadDisplay");
+  const loginError = document.getElementById("loginError");
+
+  // Example default users
+  if (!store.users[ADMIN_NAME]) {
+    store.users[ADMIN_NAME] = { coins: 1000, points: 500, xp: 0, gamesPlayed: 0 };
+    store.users["Player1"] = { coins: 100, points: 50, xp: 0, gamesPlayed: 0 };
+    store.users["Player2"] = { coins: 150, points: 30, xp: 0, gamesPlayed: 0 };
+    saveAll();
+  }
+
+  profilesDiv.innerHTML = "";
+  Object.keys(store.users).forEach(u => {
+    const card = document.createElement("div");
+    card.className = "user-card";
+    card.textContent = u;
+    card.onclick = () => {
+      store.tempUser = u;
+      profilesDiv.classList.add("hidden");
+      keypadSection.classList.remove("hidden");
+    };
+    profilesDiv.appendChild(card);
+  });
+
+  // Keypad functionality
+  let code = "";
+  document.querySelectorAll(".key-btn").forEach(btn => {
+    btn.onclick = () => {
+      if (btn.dataset.num !== undefined) {
+        if (code.length < 4) code += btn.dataset.num;
+      } else if (btn.dataset.action === "clear") {
+        code = "";
+      } else if (btn.dataset.action === "enter") {
+        // simple code: '1234' unlocks anything
+        if (code === "1234") {
+          store.currentUser = store.tempUser;
+          saveAll();
+          window.location.href = "hub.html";
+        } else {
+          loginError.textContent = "Wrong code!";
+        }
+        code = "";
+      }
+      keypadDisplay.textContent = code.padEnd(4, "-");
+    };
+  });
+
+  document.getElementById("backToProfiles").onclick = () => {
+    keypadSection.classList.add("hidden");
+    profilesDiv.classList.remove("hidden");
+    code = "";
+    keypadDisplay.textContent = "----";
+    loginError.textContent = "";
+  };
+}
+
+/*************************
   NAV BUTTONS
 **************************/
 function wireNav() {
   const go = (id, page) => {
     const b = document.getElementById(id);
-    if (b) b.onclick = () => (window.location.href = page);
+    if (b) b.onclick = () => {
+      // Check locks for Game/Shop
+      if (page === "game" && store.settings.gameLocked) {
+        alert("Game page is locked by admin.");
+        return;
+      }
+      if (page === "shop" && store.settings.shopLocked) {
+        alert("Shop page is locked by admin.");
+        return;
+      }
+      window.location.href = page;
+    };
   };
 
   go("btnHub", "hub.html");
   go("btnGame", "game.html");
   go("btnShop", "shop.html");
   go("btnAdmin", "admin.html");
+  go("btnUpsideDown", "upsidedown.html");
+  go("btnAdmin", "admin.html");
+  go("btnRecords", "records.html");
 
   const logout = document.getElementById("btnLogout");
-  if (logout) {
-    logout.onclick = () => {
-      localStorage.removeItem("currentUser");
-      window.location.href = "index.html";
-    };
-  }
+  if (logout) logout.onclick = () => {
+    localStorage.removeItem("currentUser");
+    window.location.href = "index.html";
+  };
 
-  const back = document.getElementById("backToHub");
-  if (back) back.onclick = () => (window.location.href = "hub.html");
+  const backToHub = document.getElementById("backToHub");
+  if (backToHub) backToHub.onclick = () => window.location.href = "hub.html";
+
+  const btnAdminPage = document.getElementById("btnAdmin");
+  if (btnAdminPage) btnAdminPage.onclick = () => window.location.href = "admin.html";
 }
 
 /*************************
-  HUB
+  HUB PAGE
 **************************/
 function loadHub() {
   requireLogin();
   const u = store.users[store.currentUser];
-
   document.getElementById("hubUserName").textContent = store.currentUser;
   document.getElementById("userCoins").textContent = u.coins || 0;
   document.getElementById("userPoints").textContent = u.points || 0;
@@ -74,10 +152,17 @@ function loadHub() {
 }
 
 /*************************
-  GAME
+  GAME PAGE
 **************************/
 function loadGame() {
   requireLogin();
+
+  if (store.settings.gameLocked) {
+    alert("Game page is locked by admin.");
+    window.location.href = "hub.html";
+    return;
+  }
+
   const u = store.users[store.currentUser];
 
   if (store.settings.onePlayOnly && u.gamesPlayed > 0) {
@@ -86,7 +171,8 @@ function loadGame() {
     return;
   }
 
-  document.getElementById("startGameBtn").onclick = () => {
+  const startBtn = document.getElementById("startGameBtn");
+  if (startBtn) startBtn.onclick = () => {
     u.gamesPlayed = (u.gamesPlayed || 0) + 1;
     u.xp = (u.xp || 0) + 50;
     u.coins = (u.coins || 0) + 10;
@@ -97,10 +183,17 @@ function loadGame() {
 }
 
 /*************************
-  SHOP
+  SHOP PAGE
 **************************/
 function loadShop() {
   requireLogin();
+
+  if (store.settings.shopLocked) {
+    alert("Shop page is locked by admin.");
+    window.location.href = "hub.html";
+    return;
+  }
+
   const u = store.users[store.currentUser];
   document.getElementById("shopCoins").textContent = u.coins || 0;
 
@@ -119,7 +212,7 @@ function loadShop() {
 }
 
 /*************************
-  RECORDS (ADMIN)
+  RECORDS PAGE
 **************************/
 function loadRecords() {
   requireAdmin();
@@ -162,13 +255,37 @@ function approvePurchase(i) {
 function loadAdmin() {
   requireAdmin();
 
-  const toggle = document.getElementById("toggleGamePlay");
-  toggle.checked = store.settings.onePlayOnly;
-  toggle.onchange = () => {
-    store.settings.onePlayOnly = toggle.checked;
-    saveAll();
-  };
+  // One-play toggle
+  const togglePlay = document.getElementById("toggleGamePlay");
+  if (togglePlay) {
+    togglePlay.checked = store.settings.onePlayOnly;
+    togglePlay.onchange = () => {
+      store.settings.onePlayOnly = togglePlay.checked;
+      saveAll();
+    };
+  }
 
+  // Game page lock
+  const toggleGameLock = document.getElementById("toggleGameLock");
+  if (toggleGameLock) {
+    toggleGameLock.checked = store.settings.gameLocked;
+    toggleGameLock.onchange = () => {
+      store.settings.gameLocked = toggleGameLock.checked;
+      saveAll();
+    };
+  }
+
+  // Shop page lock
+  const toggleShopLock = document.getElementById("toggleShopLock");
+  if (toggleShopLock) {
+    toggleShopLock.checked = store.settings.shopLocked;
+    toggleShopLock.onchange = () => {
+      store.settings.shopLocked = toggleShopLock.checked;
+      saveAll();
+    };
+  }
+
+  // Show user stats
   const tbody = document.querySelector("#userStatsTable tbody");
   tbody.innerHTML = "";
 
@@ -190,8 +307,9 @@ function loadAdmin() {
 **************************/
 document.addEventListener("DOMContentLoaded", () => {
   wireNav();
-  const page = document.body.dataset.page;
 
+  const page = document.body.dataset.page;
+  if (page === "login") loadLogin();
   if (page === "hub") loadHub();
   if (page === "game") loadGame();
   if (page === "shop") loadShop();
