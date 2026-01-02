@@ -1,24 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Stranger Things Shop</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Stranger Things Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body data-page="shop" class="st-theme">
 
-<header class="top-header glass">
-  <h1>Shop</h1>
-</header>
+  <!-- Header -->
+  <header class="top-header glass">
+    <h1 class="app-title">Shop</h1>
+    <div class="header-buttons">
+      <button id="btnHub" class="btn small">Hub</button>
+      <button id="btnGame" class="btn small">Game</button>
+      <button id="btnUpsideDown" class="btn small">Upside Down</button>
+      <button id="btnLogout" class="btn small danger">Logout</button>
+    </div>
+    <p id="shopCoins" class="muted small">0 coins</p>
+  </header>
 
-<main class="main-shell">
-  <section class="card glass">
-    <h2>Buy Items</h2>
-    <div id="shopItems" class="shop-grid"></div>
-  </section>
-</main>
+  <!-- Main Content -->
+  <main class="main-shell">
+    <section class="card glass" id="shopSection">
+      <h2>Buy items</h2>
+      <div id="shopContainer" class="shop-grid">
+        <!-- JS will populate shop items -->
+      </div>
+      <button id="backToHub" class="btn ghost full">⬅ Back to Hub</button>
+    </section>
+  </main>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
