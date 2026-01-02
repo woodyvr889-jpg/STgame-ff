@@ -1,35 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-page="shop">
 <head>
-  <meta charset="UTF-8" />
-  <title>Stranger Things Shop</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .shop-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #333;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .buy-btn {
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body data-page="shop" class="st-theme">
-
-  <!-- Header -->
-  <header class="top-header glass">
-    <h1 class="app-title">Shop</h1>
-    <div class="header-buttons">
-      <button id="btnHub" class="btn small">Hub</button>
-      <button id="btnGame" class="btn small">Game</button>
-      <button id="btnUpsideDown" class="btn small">Upside Down</button>
-      <button id="btnLogout" class="btn small danger">Logout</button>
-    </div>
-    <p id="shopCoins" class="muted small">0 coins</p>
+<body>
+  <header>
+    <h1>Shop</h1>
+    <button id="backToHub">Back to Hub</button>
+    <div>Coins: <span id="shopCoins">0</span></div>
   </header>
 
-  <!-- Main Content -->
-  <main class="main-shell">
-    <section class="card glass" id="shopSection">
-      <h2>Buy items</h2>
-      <div id="shopContainer" class="shop-grid">
-        <!-- JS will populate shop items -->
-      </div>
-      <button id="backToHub" class="btn ghost full">⬅ Back to Hub</button>
-    </section>
-  </main>
+  <section id="shopContainer"></section>
 
   <script src="script.js"></script>
 </body>
