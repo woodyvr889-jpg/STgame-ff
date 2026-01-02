@@ -1,386 +1,200 @@
-"use strict";
+/*************************
+  GLOBAL STATE + STORAGE
+**************************/
+const ADMIN_NAME = "James";
 
-/* ---------------------- USERS ---------------------- */
-const USERS = [
-  { name: "James", code: "080512", isAdmin: true },
-  { name: "Mum", code: "2206", isAdmin: false },
-  { name: "Dad", code: "2085", isAdmin: false },
-  { name: "Nannan", code: "4213", isAdmin: false },
-  { name: "Grandad Darren", code: "8765", isAdmin: false },
-  { name: "Grandma Jean", code: "1357", isAdmin: false },
-  { name: "Grandad Steve", code: "2468", isAdmin: false },
-  { name: "Uncle Paul", code: "1122", isAdmin: false }
-];
+const store = {
+  users: JSON.parse(localStorage.getItem("users")) || {},
+  currentUser: localStorage.getItem("currentUser") || null,
+  purchaseRequests: JSON.parse(localStorage.getItem("purchaseRequests")) || [],
+  settings: JSON.parse(localStorage.getItem("settings")) || {
+    onePlayOnly: false
+  }
+};
 
-/* ------------------- STORAGE & LOCKS ------------------ */
-const storage = window.localStorage;
-const LOCKED_STATUS = "OFF";
-const UNLOCK_DATE = new Date("2026-01-05T00:00:00+00:00");
-
-/* ------------------ UTILITY FUNCTIONS ----------------- */
-function isLockedNow() {
-  if (LOCKED_STATUS === "OFF") return false;
-  const now = new Date(new Date().toLocaleString("en-GB", { timeZone: "Europe/London" }));
-  return now < UNLOCK_DATE;
+function saveAll() {
+  localStorage.setItem("users", JSON.stringify(store.users));
+  localStorage.setItem("purchaseRequests", JSON.stringify(store.purchaseRequests));
+  localStorage.setItem("settings", JSON.stringify(store.settings));
 }
 
-function isDoubleTime() {
-  const now = new Date(new Date().toLocaleString("en-GB", { timeZone: "Europe/London" }));
-  const month = now.getMonth() + 1;
-  const day = now.getDate();
-  const hour = now.getHours();
-  return month === 1 && day >= 5 && day <= 31 && hour >= 15 && hour < 17;
+/*************************
+  AUTH + GUARDS
+**************************/
+function requireLogin() {
+  if (!store.currentUser) window.location.href = "index.html";
 }
 
-/* ---------------------- LOGIN PAGE ------------------- */
-function initLoginPage() {
-  const grid = document.getElementById("loginProfiles");
-  const keypad = document.getElementById("keypadSection");
-  const profilesCard = document.getElementById("profilesCard");
-  const display = document.getElementById("keypadDisplay");
-  const keypadTitle = document.getElementById("keypadTitle");
-  const error = document.getElementById("loginError");
-  const back = document.getElementById("backToProfiles");
-
-  if (!grid) return;
-
-  let selectedUser = null;
-  let enteredCode = "";
-
-  grid.innerHTML = "";
-  USERS.forEach(user => {
-    const div = document.createElement("div");
-    div.className = "user-card";
-    div.textContent = user.name;
-    div.dataset.user = user.name;
-    div.addEventListener("click", () => {
-      selectedUser = user;
-      enteredCode = "";
-      keypadTitle.textContent = `Enter code for ${selectedUser.name}`;
-      display.textContent = "----";
-      keypad.classList.remove("hidden");
-      profilesCard.classList.add("hidden");
-      error.textContent = "";
-    });
-    grid.appendChild(div);
-  });
-
-  function updateDisplay() {
-    if (!selectedUser) return;
-    display.textContent = enteredCode.replace(/./g, "●").padEnd(selectedUser.code.length, "-");
-  }
-
-  document.querySelectorAll(".key-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (!selectedUser) return;
-      const num = btn.dataset.num;
-      const action = btn.dataset.action;
-
-      if (action === "clear") {
-        enteredCode = "";
-        updateDisplay();
-        return;
-      }
-      if (action === "enter") {
-        if (enteredCode === selectedUser.code) {
-          storage.setItem("currentUser", selectedUser.name);
-          window.location.href = "hub.html";
-        } else {
-          error.textContent = "Wrong code";
-          enteredCode = "";
-          updateDisplay();
-        }
-        return;
-      }
-      if (num && enteredCode.length < selectedUser.code.length) {
-        enteredCode += num;
-        updateDisplay();
-      }
-    });
-  });
-
-  back.addEventListener("click", () => {
-    keypad.classList.add("hidden");
-    profilesCard.classList.remove("hidden");
-    enteredCode = "";
-    selectedUser = null;
-    updateDisplay();
-    error.textContent = "";
-  });
-}
-
-/* ---------------------- HUB PAGE ------------------- */
-function initHubPage() {
-  const user = storage.getItem("currentUser");
-  if (!user) { window.location.href = "index.html"; return; }
-
-  document.getElementById("hubUserName").textContent = user;
-
-  if (!storage.getItem("userStats")) storage.setItem("userStats", JSON.stringify({}));
-  const allStats = JSON.parse(storage.getItem("userStats"));
-  if (!allStats[user]) allStats[user] = { points: 0, coins: 0, gamesPlayed: 0, xp: 0 };
-  storage.setItem("userStats", JSON.stringify(allStats));
-
-  function updateStats() {
-    const s = JSON.parse(storage.getItem("userStats"))[user];
-    document.getElementById("userPoints").textContent = s.points;
-    document.getElementById("userCoins").textContent = s.coins;
-    document.getElementById("userGamesPlayed").textContent = s.gamesPlayed;
-    document.getElementById("userXP").textContent = s.xp;
-  }
-  updateStats();
-
-  const clock = document.getElementById("londonClock");
-  if (clock) setInterval(() => clock.textContent = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" }), 1000);
-
-  initHeaderButtons();
-
-  const timerDiv = document.getElementById("unlockTimer");
-  const btnGame = document.getElementById("btnGame");
-  const btnShop = document.getElementById("btnShop");
-
-  function updateUnlockTimer() {
-    const now = new Date(new Date().toLocaleString("en-GB", { timeZone: "Europe/London" }));
-    const diff = UNLOCK_DATE - now;
-    const locked = LOCKED_STATUS === "ON" && diff > 0;
-
-    if (!locked) {
-      if (btnGame) { btnGame.textContent = "Game"; btnGame.disabled = false; }
-      if (btnShop) { btnShop.textContent = "Shop"; btnShop.disabled = false; }
-      if (timerDiv) timerDiv.textContent = "Pages are unlocked!";
-      return;
-    }
-
-    if (btnGame) { btnGame.textContent = "Game 🔒"; btnGame.disabled = true; }
-    if (btnShop) { btnShop.textContent = "Shop 🔒"; btnShop.disabled = true; }
-
-    if (timerDiv) {
-      let remaining = diff;
-      const days = Math.floor(remaining / 86400000); remaining -= days * 86400000;
-      const hours = Math.floor(remaining / 3600000); remaining -= hours * 3600000;
-      const minutes = Math.floor(remaining / 60000); remaining -= minutes * 60000;
-      const seconds = Math.floor(remaining / 1000);
-      timerDiv.textContent = `Locked until 5th Jan: ${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }
-  }
-
-  updateUnlockTimer();
-  setInterval(updateUnlockTimer, 1000);
-}
-
-/* ---------------------- GAME PAGE ------------------- */
-function initGamePage() {
-  const user = storage.getItem("currentUser");
-  if (!user) { window.location.href = "index.html"; return; }
-
-  const startBtn = document.getElementById("startGameBtn");
-  const backBtn = document.getElementById("backToHub"); // Back button
-  const gameContainer = document.getElementById("gameContainer");
-  const timerEl = document.getElementById("gameTimer");
-  const bombCount = document.getElementById("bombCount");
-  const coinCount = document.getElementById("coinCount");
-  const clockCount = document.getElementById("clockCount");
-  const xpCount = document.getElementById("xpCount");
-  const xpLost = document.getElementById("xpLost");
-  const itemsMissed = document.getElementById("itemsMissed");
-  const bonusXP = document.getElementById("bonusXP");
-
-  let timerInterval, timeLeft = 60;
-  let stats = { bombs: 0, coins: 0, clocks: 0, xp: 0, xpLost: 0, itemsMissed: 0, bonusXP: 0 };
-
-  function resetGame() {
-    timeLeft = 60;
-    timerEl.textContent = timeLeft;
-    stats = { bombs: 0, coins: 0, clocks: 0, xp: 0, xpLost: 0, itemsMissed: 0, bonusXP: 0 };
-    updateStatsDisplay();
-    gameContainer.innerHTML = "";
-  }
-
-  function updateStatsDisplay() {
-    bombCount.textContent = stats.bombs.toString().padStart(2, "0");
-    coinCount.textContent = stats.coins.toString().padStart(2, "0");
-    clockCount.textContent = stats.clocks.toString().padStart(2, "0");
-    xpCount.textContent = stats.xp.toString().padStart(4, "0");
-    xpLost.textContent = stats.xpLost.toString().padStart(4, "0");
-    itemsMissed.textContent = stats.itemsMissed.toString().padStart(2, "0");
-    bonusXP.textContent = stats.bonusXP.toString().padStart(4, "0");
-  }
-
-  function spawnItem() {
-    const items = [
-      { icon: "💣", type: "bomb", value: -10, xp: -10, color: "red" },
-      { icon: "🪙", type: "coin", value: 25, xp: 50, color: "green" },
-      { icon: "🕓", type: "clock", value: 0, xp: Math.random() < 0.5 ? 10 : -10, color: "yellow" }
-    ];
-    const item = items[Math.floor(Math.random() * items.length)];
-    const btn = document.createElement("button");
-    btn.textContent = item.icon;
-    btn.style.position = "absolute";
-    btn.style.fontSize = "2rem";
-    btn.style.cursor = "pointer";
-
-    const maxX = gameContainer.clientWidth - 40;
-    const maxY = gameContainer.clientHeight - 40;
-    btn.style.left = Math.floor(Math.random() * maxX) + "px";
-    btn.style.top = Math.floor(Math.random() * maxY) + "px";
-
-    gameContainer.appendChild(btn);
-
-    const multiplier = isDoubleTime() ? 2 : 1;
-
-    let clicked = false;
-    const timeout = setTimeout(() => {
-      if (!clicked) { stats.itemsMissed++; updateStatsDisplay(); btn.remove(); }
-    }, 5000);
-
-    btn.addEventListener("click", () => {
-      if (clicked) return;
-      clicked = true; clearTimeout(timeout);
-
-      let floatingText = "";
-      if (item.type === "bomb") { stats.bombs++; stats.xpLost += Math.abs(item.xp) * multiplier; floatingText = "-" + Math.abs(item.xp) * multiplier + " XP"; }
-      if (item.type === "coin") { stats.coins++; stats.xp += item.xp * multiplier; floatingText = "+" + item.xp * multiplier + " coins/XP"; }
-      if (item.type === "clock") { stats.clocks++; stats.xp += item.xp * multiplier; floatingText = (item.xp > 0 ? "+" : "") + item.xp * multiplier + " XP"; }
-
-      showFloatingText(btn, floatingText, item.color, 2000);
-      updateStatsDisplay();
-      setTimeout(() => btn.remove(), 200);
-    });
-  }
-
-  function showFloatingText(parent, text, color, duration = 1000) {
-    const span = document.createElement("span");
-    span.className = "floating-text";
-    span.textContent = text;
-    span.style.color = color;
-    span.style.position = "absolute";
-    span.style.top = "-20px";
-    span.style.left = "50%";
-    span.style.transform = "translateX(-50%)";
-    span.style.fontWeight = "bold";
-    span.style.pointerEvents = "none";
-    span.style.transition = `all ${duration / 1000}s ease-out`;
-    parent.appendChild(span);
-
-    setTimeout(() => { span.style.top = "-50px"; span.style.opacity = 0; }, 50);
-    setTimeout(() => span.remove(), duration);
-  }
-
-  function startGame() {
-    resetGame();
-    startBtn.disabled = true;
-
-    timerInterval = setInterval(() => {
-      timeLeft--;
-      timerEl.textContent = timeLeft;
-
-      if (Math.random() < 0.4) spawnItem();
-
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        alert("Game Over!");
-        startBtn.disabled = false;
-        const allStats = JSON.parse(storage.getItem("userStats") || "{}");
-        if (!allStats[user]) allStats[user] = { points: 0, coins: 0, gamesPlayed: 0, xp: 0 };
-        allStats[user].gamesPlayed++;
-        allStats[user].xp += stats.xp;
-        allStats[user].coins = (allStats[user].coins || 0) + stats.coins;
-        storage.setItem("userStats", JSON.stringify(allStats));
-      }
-    }, 1000);
-  }
-
-  startBtn.addEventListener("click", () => {
-    if (isLockedNow()) { alert("The game is locked!"); return; }
-    startGame();
-  });
-
-  if (backBtn) {
-    backBtn.addEventListener("click", () => {
-      if (timerInterval) clearInterval(timerInterval);
-      window.location.href = "hub.html";
-    });
-  }
-}
-
-/* ---------------------- SHOP PAGE ------------------- */
-function initShopPage() {
-  const user = storage.getItem("currentUser");
-  if (!user) { window.location.href = "index.html"; return; }
-
-  const shopContainer = document.getElementById("shopContainer");
-  const coinDisplay = document.getElementById("shopCoins");
-  const backBtn = document.getElementById("backToHub");
-
-  if (!shopContainer || !coinDisplay || !backBtn) return;
-
-  const allStats = JSON.parse(storage.getItem("userStats") || "{}");
-  if (!allStats[user]) allStats[user] = { points: 0, coins: 0, gamesPlayed: 0, xp: 0 };
-  storage.setItem("userStats", JSON.stringify(allStats));
-
-  function updateCoins() {
-    const coins = JSON.parse(storage.getItem("userStats"))[user].coins;
-    coinDisplay.textContent = coins;
-  }
-
-  updateCoins();
-
-  const shopItems = [
-    { name: "Extra Life", price: 100 },
-    { name: "Double Coins", price: 200 },
-    { name: "XP Boost", price: 150 }
-  ];
-
-  shopContainer.innerHTML = "";
-  shopItems.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "shop-item";
-    div.innerHTML = `
-      <span class="item-name">${item.name}</span>
-      <span class="item-price">${item.price} coins</span>
-      <button class="buy-btn">Buy</button>
-    `;
-    const btn = div.querySelector(".buy-btn");
-    btn.addEventListener("click", () => {
-      const stats = JSON.parse(storage.getItem("userStats"));
-      const coins = stats[user].coins;
-      if (coins >= item.price) {
-        stats[user].coins -= item.price;
-        storage.setItem("userStats", JSON.stringify(stats));
-        alert(`Purchased ${item.name}!`);
-        updateCoins();
-      } else {
-        alert("Not enough coins!");
-      }
-    });
-    shopContainer.appendChild(div);
-  });
-
-  backBtn.addEventListener("click", () => {
+function requireAdmin() {
+  requireLogin();
+  if (store.currentUser !== ADMIN_NAME) {
+    alert("Admins only.");
     window.location.href = "hub.html";
+  }
+}
+
+/*************************
+  NAV BUTTONS
+**************************/
+function wireNav() {
+  const go = (id, page) => {
+    const b = document.getElementById(id);
+    if (b) b.onclick = () => (window.location.href = page);
+  };
+
+  go("btnHub", "hub.html");
+  go("btnGame", "game.html");
+  go("btnShop", "shop.html");
+  go("btnAdmin", "admin.html");
+
+  const logout = document.getElementById("btnLogout");
+  if (logout) {
+    logout.onclick = () => {
+      localStorage.removeItem("currentUser");
+      window.location.href = "index.html";
+    };
+  }
+
+  const back = document.getElementById("backToHub");
+  if (back) back.onclick = () => (window.location.href = "hub.html");
+}
+
+/*************************
+  HUB
+**************************/
+function loadHub() {
+  requireLogin();
+  const u = store.users[store.currentUser];
+
+  document.getElementById("hubUserName").textContent = store.currentUser;
+  document.getElementById("userCoins").textContent = u.coins || 0;
+  document.getElementById("userPoints").textContent = u.points || 0;
+  document.getElementById("userXP").textContent = u.xp || 0;
+  document.getElementById("userGamesPlayed").textContent = u.gamesPlayed || 0;
+}
+
+/*************************
+  GAME
+**************************/
+function loadGame() {
+  requireLogin();
+  const u = store.users[store.currentUser];
+
+  if (store.settings.onePlayOnly && u.gamesPlayed > 0) {
+    alert("You can only play once.");
+    window.location.href = "hub.html";
+    return;
+  }
+
+  document.getElementById("startGameBtn").onclick = () => {
+    u.gamesPlayed = (u.gamesPlayed || 0) + 1;
+    u.xp = (u.xp || 0) + 50;
+    u.coins = (u.coins || 0) + 10;
+    saveAll();
+    alert("Game finished! Stats saved.");
+    window.location.href = "hub.html";
+  };
+}
+
+/*************************
+  SHOP
+**************************/
+function loadShop() {
+  requireLogin();
+  const u = store.users[store.currentUser];
+  document.getElementById("shopCoins").textContent = u.coins || 0;
+
+  document.querySelectorAll(".request-buy-btn").forEach(btn => {
+    btn.onclick = () => {
+      store.purchaseRequests.push({
+        user: store.currentUser,
+        item: btn.dataset.item,
+        price: Number(btn.dataset.price),
+        status: "pending"
+      });
+      saveAll();
+      alert("Purchase request sent!");
+    };
   });
 }
 
-/* ------------------ HEADER BUTTONS ------------------ */
-function initHeaderButtons() {
-  const btnGame = document.getElementById("btnGame");
-  const btnShop = document.getElementById("btnShop");
-  const btnHub = document.getElementById("btnHub");
-  const btnUpside = document.getElementById("btnUpsideDown");
-  const btnLogout = document.getElementById("btnLogout");
+/*************************
+  RECORDS (ADMIN)
+**************************/
+function loadRecords() {
+  requireAdmin();
+  const tbody = document.querySelector("#purchaseRequestsTable tbody");
+  tbody.innerHTML = "";
 
-  if (btnLogout) btnLogout.addEventListener("click", () => { storage.removeItem("currentUser"); window.location.href = "index.html"; });
-  if (btnHub) btnHub.addEventListener("click", () => window.location.href = "hub.html");
-  if (btnUpside) btnUpside.addEventListener("click", () => window.location.href = "upsidedown.html");
-  if (btnGame) btnGame.addEventListener("click", () => { if (isLockedNow()) { alert("Game locked!"); return; } window.location.href = "game.html"; });
-  if (btnShop) btnShop.addEventListener("click", () => { if (isLockedNow()) { alert("Shop locked!"); return; } window.location.href = "shop.html"; });
+  store.purchaseRequests.forEach((r, i) => {
+    if (r.status !== "pending") return;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.user}</td>
+      <td>${r.item}</td>
+      <td>${r.price}</td>
+      <td><button data-i="${i}">Approve</button></td>
+    `;
+    tr.querySelector("button").onclick = () => approvePurchase(i);
+    tbody.appendChild(tr);
+  });
 }
 
-/* ---------------------- BOOT ------------------- */
+function approvePurchase(i) {
+  const r = store.purchaseRequests[i];
+  const u = store.users[r.user];
+
+  if (u.coins < r.price) {
+    alert("User lacks coins.");
+    return;
+  }
+
+  u.coins -= r.price;
+  r.status = "approved";
+  saveAll();
+  loadRecords();
+}
+
+/*************************
+  ADMIN PANEL
+**************************/
+function loadAdmin() {
+  requireAdmin();
+
+  const toggle = document.getElementById("toggleGamePlay");
+  toggle.checked = store.settings.onePlayOnly;
+  toggle.onchange = () => {
+    store.settings.onePlayOnly = toggle.checked;
+    saveAll();
+  };
+
+  const tbody = document.querySelector("#userStatsTable tbody");
+  tbody.innerHTML = "";
+
+  Object.entries(store.users).forEach(([name, u]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${name}</td>
+      <td>${u.coins || 0}</td>
+      <td>${u.points || 0}</td>
+      <td>${u.gamesPlayed || 0}</td>
+      <td>${u.xp || 0}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/*************************
+  PAGE ROUTER
+**************************/
 document.addEventListener("DOMContentLoaded", () => {
+  wireNav();
   const page = document.body.dataset.page;
-  if (page === "login") initLoginPage();
-  if (page === "hub") initHubPage();
-  if (page === "game") initGamePage();
-  if (page === "shop") initShopPage();
+
+  if (page === "hub") loadHub();
+  if (page === "game") loadGame();
+  if (page === "shop") loadShop();
+  if (page === "records") loadRecords();
+  if (page === "admin") loadAdmin();
 });
