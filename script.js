@@ -106,15 +106,13 @@ function loadLogin() {
       } else if (btn.dataset.action === "clear") {
         code = "";
       } else if (btn.dataset.action === "enter") {
-        if (code === "1234") { // default code for all users
-          store.currentUser = store.tempUser;
-          saveAll();
-          window.location.href = "hub.html";
-        } else {
-          loginError.textContent = "Wrong code!";
+        if (USER_CODES[store.tempUser] === code) {
+  store.currentUser = store.tempUser;
+  saveAll();
+  window.location.href = "hub.html";
+} else {
+  loginError.textContent = "Wrong code!";
         }
-        code = "";
-      }
       keypadDisplay.textContent = code.padEnd(4, "-");
     };
   });
