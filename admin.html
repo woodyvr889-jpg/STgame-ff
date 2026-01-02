@@ -1,40 +1,35 @@
 <!DOCTYPE html>
-<html lang="en" data-page="admin">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Stranger Things Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <header>
-    <h1>Admin Panel</h1>
+<body data-page="admin" class="st-theme">
+
+<header class="top-header glass compact">
+  <h1 class="app-title">Admin Panel</h1>
+  <nav class="nav-buttons glass">
     <button id="btnHub">Hub</button>
     <button id="btnLogout">Logout</button>
-  </header>
+  </nav>
+</header>
 
-  <main>
-    <div>
-      <label>
-        <input type="checkbox" id="toggleGamePlay"> Allow one play per person
-      </label>
-    </div>
-    <div>
-      <label>
-        <input type="checkbox" id="toggleGameLock"> Lock Game page
-      </label>
-    </div>
-    <div>
-      <label>
-        <input type="checkbox" id="toggleShopLock"> Lock Shop page
-      </label>
-    </div>
+<main class="main-shell">
+  <section class="card glass">
+    <h2>Settings</h2>
+    <label><input type="checkbox" id="toggleGamePlay"> One Play Only</label><br>
+    <label><input type="checkbox" id="toggleGameLock"> Lock Game Page</label><br>
+    <label><input type="checkbox" id="toggleShopLock"> Lock Shop Page</label>
+  </section>
 
+  <section class="card glass">
     <h2>User Stats</h2>
     <table id="userStatsTable">
       <thead>
         <tr>
-          <th>User</th>
+          <th>Name</th>
           <th>Coins</th>
           <th>Points</th>
           <th>Games Played</th>
@@ -43,57 +38,9 @@
       </thead>
       <tbody></tbody>
     </table>
-  </main>
+  </section>
+</main>
 
-  <script src="script.js"></script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en" data-page="admin">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <h1>Admin Panel</h1>
-    <button id="btnHub">Hub</button>
-    <button id="btnLogout">Logout</button>
-  </header>
-
-  <main>
-    <div>
-      <label>
-        <input type="checkbox" id="toggleGamePlay"> Allow one play per person
-      </label>
-    </div>
-    <div>
-      <label>
-        <input type="checkbox" id="toggleGameLock"> Lock Game page
-      </label>
-    </div>
-    <div>
-      <label>
-        <input type="checkbox" id="toggleShopLock"> Lock Shop page
-      </label>
-    </div>
-
-    <h2>User Stats</h2>
-    <table id="userStatsTable">
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>Coins</th>
-          <th>Points</th>
-          <th>Games Played</th>
-          <th>XP</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </main>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
