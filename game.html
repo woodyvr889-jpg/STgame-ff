@@ -1,53 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Stranger Things Hub</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>Stranger Things Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<style>
+body.st-theme { background-color: #8B0000; color: #fff; font-family: 'Arial', sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; }
+.game-shell { text-align:center; width:90%; max-width:900px; }
+.card { background: rgba(0,0,0,0.5); border:2px solid #fff; border-radius:12px; padding:15px; margin:10px 0; }
+.stats-box, .how-to-box, .results-box { display:flex; flex-direction:column; gap:5px; text-align:center; }
+.square-grid { display:grid; grid-template-columns:repeat(5,60px); grid-template-rows:repeat(4,60px); gap:5px; justify-content:center; margin:15px 0; }
+.square-grid button { background:rgba(255,255,255,0.1); border:2px solid #fff; border-radius:8px; font-size:1.5rem; cursor:pointer; position:relative; }
+#gameTimer { font-size:2rem; margin:15px 0; }
+.floating-text { position:absolute; font-weight:bold; animation: floatUp 1s forwards; }
+@keyframes floatUp { 0%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-30px);} }
+</style>
 </head>
-<body data-page="hub" class="st-theme">
+<body data-page="game" class="st-theme">
 
-<div id="toastContainer" class="toast-container"></div>
+<div class="game-shell">
+  <h1>⬅️ Stranger Things Game</h1>
 
-<header class="top-header glass">
-  <h1 class="app-title">Stranger Things Game</h1>
-  <p class="header-sub">Designed by FundsFlow</p>
-  <small id="londonClock"></small>
-  <div id="unlockTimer" class="small muted"></div>
-  <div class="header-buttons">
-    <button id="btnLogout" class="btn danger">Logout</button>
-    <button id="btnGame" class="btn primary" disabled>Game 🔒</button>
-    <button id="btnHub" class="btn main">Hub</button>
-    <button id="btnShop" class="btn secondary" disabled>Shop 🔒</button>
-    <button id="btnUpsideDown" class="btn ghost">The Upside Down</button>
-  </div>
-</header>
-
-<main class="main-shell">
-  <section class="card glass">
-    <h2>Welcome, <span id="hubUserName"></span></h2>
-  </section>
-
-  <section id="notificationPopup" class="card glass hidden"></section>
-
-  <section class="card glass stats">
-    <h2>Your Currency & Stats</h2>
-    <p>Points: <span id="userPoints">0</span></p>
-    <p>Coins: <span id="userCoins">0</span></p>
-    <p>Games Played: <span id="userGamesPlayed">0</span></p>
-    <p>Total XP: <span id="userXP">0</span></p>
-  </section>
-
-  <section class="card glass">
+  <div class="card how-to-box">
     <h2>How to Play</h2>
-    <p><strong>XP:</strong> Earn XP by playing the game. Avoid bombs.</p>
-    <p><strong>Coins:</strong> Collect coins to spend in the shop.</p>
-    <p><strong>Points:</strong> Used for bidding events and rewards.</p>
-    <p><strong>Games Played:</strong> Tracks how many times you've played.</p>
+    <p>XP: Earn XP by playing the game. Avoid bombs.</p>
+    <p>Coins: Collect coins to spend in the shop.</p>
+    <p>Points: Used for bidding events and rewards.</p>
+    <p>Games Played: Tracks how many times you've played.</p>
     <p>All stats save automatically.</p>
-  </section>
-</main>
+    <p>Bombs 💣 = -10 coins and -10 XP (per 1)</p>
+    <p>Coins 🪙 = +25 coins +50 XP (per 1)</p>
+    <p>Clock 🕓 = [RANDOM] +10 coins or -10 XP</p>
+    <p>Every day 3pm - 5pm, all results DOUBLE</p>
+    <p>x2 is currently <span id="doubleStatus">On</span></p>
+  </div>
+
+  <div class="card stats-box">
+    <p>Timer: <span id="gameTimer">60</span> seconds</p>
+    <p>Stats: Bombs: <span id="bombCount">00</span> Coins: <span id="coinCount">00</span> Clocks: <span id="clockCount">00</span> XP: <span id="xpCount">0000</span></p>
+    <p>XP lost: <span id="xpLost">0000</span> Items missed: <span id="itemsMissed">00</span> Bonus XP: <span id="bonusXP">0000</span></p>
+  </div>
+
+  <div class="card square-grid" id="gameContainer"></div>
+
+  <div class="card">
+    <button id="startGameBtn" class="btn primary">Start Game</button>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
