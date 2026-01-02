@@ -3,6 +3,17 @@
 **************************/
 const ADMIN_NAME = "James";
 
+const USER_CODES = {
+  "James": "080512",
+  "Nannan": "4213",
+  "Mum": "2206",
+  "Grandma Jean": "1357",
+  "Dad": "2085",
+  "Grandad Steve": "2468",
+  "Uncle Paul": "1122",
+  "Grandad Darren": "8765",
+};
+
 const store = {
   users: JSON.parse(localStorage.getItem("users")) || {},
   currentUser: localStorage.getItem("currentUser") || null,
