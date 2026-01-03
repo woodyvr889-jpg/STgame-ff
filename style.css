@@ -289,3 +289,39 @@ input[type="checkbox"] {
     font-size: 0.9rem;
   }
 }
+
+/* ---------------------------------
+   GAME EMOJIS
+---------------------------------- */
+.game-area {
+  position: relative;
+  width: 100%;
+  height: 500px; /* or however tall your game section is */
+  overflow: hidden;
+  background: rgba(0,0,0,0.2); /* optional: subtle overlay */
+  margin: 20px auto;
+  border-radius: 12px;
+}
+
+.emoji-item {
+  position: absolute;
+  font-size: 2rem;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease;
+}
+
+.emoji-item:hover {
+  transform: scale(1.3);
+  filter: drop-shadow(0 0 10px #ff3c00);
+}
+
+/* Optional: add falling animation */
+@keyframes fall {
+  0% { top: -50px; }
+  100% { top: 500px; }
+}
+
+.emoji-fall {
+  animation: fall linear forwards;
+}
