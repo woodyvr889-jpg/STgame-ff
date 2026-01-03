@@ -91,7 +91,7 @@ function requireAdmin() {
 }
 
 /*************************
-  NAVIGATION (GLOBAL)
+  NAVIGATION
 **************************/
 function go(page) {
   location.href = page;
@@ -126,26 +126,17 @@ function loadLogin() {
 
   document.querySelectorAll(".key-btn").forEach(btn => {
     btn.onclick = () => {
-      if (btn.dataset.num && code.length < 8) {
-        code += btn.dataset.num;
-      }
-
-      if (btn.dataset.action === "clear") {
-        code = "";
-      }
-
+      if (btn.dataset.num && code.length < 8) code += btn.dataset.num;
+      if (btn.dataset.action === "clear") code = "";
       if (btn.dataset.action === "enter") {
         if (USER_CODES[store.tempUser] === code) {
           store.currentUser = store.tempUser;
           localStorage.setItem("currentUser", store.currentUser);
           logActivity("login", "User logged in");
           location.href = "hub.html";
-        } else {
-          error.textContent = "Wrong code";
-        }
+        } else error.textContent = "Wrong code";
         code = "";
       }
-
       display.textContent = code.padEnd(8, "-");
     };
   });
@@ -173,7 +164,7 @@ function loadHub() {
 }
 
 /*************************
-  GAME (UPDATED WITH EMOJI SPAWNING)
+  GAME
 **************************/
 function loadGame() {
   requireLogin();
@@ -186,7 +177,7 @@ function loadGame() {
 
   const status = document.getElementById("gameStatus");
   const btn = document.getElementById("startGameBtn");
-  const gameArea = document.getElementById("gameArea"); // Make sure you have this div in your HTML
+  const gameArea = document.getElementById("gameArea");
 
   status.textContent = "Ready to play";
 
@@ -196,99 +187,78 @@ function loadGame() {
 
     logActivity("game-start", "Started game");
 
-    // Reset temporary results
+    // Reset tempResult
     store.tempResult = { coins: 0, points: 0, xp: 0 };
     saveAll();
 
-    // Item types
-    const itemTypes = [
-      { emoji: "🪙", type: "coins" },
-      { emoji: "⬆️", type: "points" },
-      { emoji: "🕓", type: "xp" },
-      { emoji: "💣", type: "bomb" }
-    ];
+    // Clear game area
+    gameArea.innerHTML = "";
 
-    // Spawn a single item
-    function spawnItem() {
-      const item = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-      const el = document.createElement("div");
-      el.className = "item";
-      el.textContent = item.emoji;
+    // Emoji types
+    const emojis = ["🪙", "⬆️", "🕓", "💣"];
+    const spawnCount = 15; // how many emojis appear
 
-      // Random position inside game area
-      el.style.top = Math.random() * 80 + "%";
-      el.style.left = Math.random() * 80 + "%";
+    for (let i = 0; i < spawnCount; i++) {
+      const emoji = document.createElement("div");
+      const type = emojis[Math.floor(Math.random() * emojis.length)];
+      emoji.textContent = type;
+      emoji.className = "emoji-item emoji-fall";
+      emoji.style.left = Math.random() * (gameArea.clientWidth - 30) + "px";
+      emoji.style.top = -50 - Math.random() * 200 + "px"; // spawn above
+      emoji.style.animationDuration = (3 + Math.random() * 5) + "s";
 
-      gameArea.appendChild(el);
-
-      el.onclick = () => {
-        collectItem(item.type);
-        el.remove();
+      emoji.onclick = () => {
+        collectItem(type);
+        emoji.remove(); // disappear when clicked
       };
 
-      // Remove after 3 seconds
-      setTimeout(() => {
-        if (el.parentElement) el.remove();
-      }, 3000);
+      gameArea.appendChild(emoji);
     }
 
-    // Spawn items every 0.8–1.5 seconds
-    const spawnInterval = setInterval(spawnItem, 800 + Math.random() * 700);
-
-    // End game after 60 seconds
+    // 60s timer to finish
     setTimeout(() => {
-      clearInterval(spawnInterval);
-
       const u = store.users[store.currentUser];
 
-      // Apply the results to user stats
       u.coins += store.tempResult.coins;
       u.points += store.tempResult.points;
       u.xp += store.tempResult.xp;
       u.gamesPlayed += 1;
-
-      saveAll();
 
       logActivity(
         "game-finish",
         `Finished game. Coins: ${store.tempResult.coins}, Points: ${store.tempResult.points}, XP: ${store.tempResult.xp}`
       );
 
+      saveAll();
       location.href = "results.html";
-    }, 60000); // 60 seconds
+    }, 60000);
   };
 }
 
-// Collect items function (already works with tempResult)
-function collectItem(type) {
+// Collect emojis and update tempResult
+function collectItem(emoji) {
   if (!store.tempResult) store.tempResult = { coins: 0, points: 0, xp: 0 };
 
-  let amount = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
+  let value = 0;
+  if (emoji === "🪙") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
+  if (emoji === "⬆️") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
+  if (emoji === "🕓") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
+  if (emoji === "💣") value = -([5, 10, 20, 50][Math.floor(Math.random() * 4)]);
 
-  const u = store.users[store.currentUser];
-
-  switch (type) {
-    case "coins":
-      store.tempResult.coins += amount;
-      break;
-    case "points":
-      store.tempResult.points += amount;
-      break;
-    case "xp":
-      store.tempResult.xp += amount;
-      break;
-    case "bomb":
-      // Bomb takes away coins only
-      store.tempResult.coins -= amount;
-      if (store.tempResult.coins < 0) store.tempResult.coins = 0;
-      break;
+  if (emoji === "🪙") store.tempResult.coins += value;
+  if (emoji === "⬆️") store.tempResult.points += value;
+  if (emoji === "🕓") store.tempResult.xp += value;
+  if (emoji === "💣") {
+    store.tempResult.coins += value;
+    store.tempResult.points += value;
+    store.tempResult.xp += value;
   }
 
   saveAll();
 }
 
 /*************************
-  SHOP (REQUEST ONLY)
+  SHOP
 **************************/
 function loadShop() {
   requireLogin();
@@ -320,17 +290,21 @@ function loadResults() {
   const msg = document.getElementById("resultMessage");
 
   title.textContent = "Well done!";
-  msg.textContent = "Your results have been recorded. Please tell James your score.";
+  msg.textContent =
+    "Your results have been recorded. Please tell James your score.";
 
-  // Get the results from the last game session
   const result = store.tempResult || { coins: 0, points: 0, xp: 0 };
 
-  // Update the results dynamically in the page
-  document.getElementById("coinsResult").textContent = `✅ Coins Collected: ${result.coins}`;
-  document.getElementById("pointsResult").textContent = `🎯 Points Earned: ${result.points}`;
-  document.getElementById("xpResult").textContent = `🌟 XP Gained: ${result.xp}`;
+  document.getElementById(
+    "coinsResult"
+  ).textContent = `✅ Coins Collected: ${result.coins}`;
+  document.getElementById(
+    "pointsResult"
+  ).textContent = `🎯 Points Earned: ${result.points}`;
+  document.getElementById(
+    "xpResult"
+  ).textContent = `🌟 XP Gained: ${result.xp}`;
 
-  // Clear temporary results after displaying
   store.tempResult = null;
   saveAll();
 }
