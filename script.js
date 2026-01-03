@@ -173,7 +173,7 @@ function loadHub() {
 }
 
 /*************************
-  GAME (NO STAT CHANGES)
+  GAME (UPDATED WITH EMOJI SPAWNING)
 **************************/
 function loadGame() {
   requireLogin();
@@ -186,6 +186,7 @@ function loadGame() {
 
   const status = document.getElementById("gameStatus");
   const btn = document.getElementById("startGameBtn");
+  const gameArea = document.getElementById("gameArea"); // Make sure you have this div in your HTML
 
   status.textContent = "Ready to play";
 
@@ -199,8 +200,45 @@ function loadGame() {
     store.tempResult = { coins: 0, points: 0, xp: 0 };
     saveAll();
 
-    // 60-second gameplay timer
+    // Item types
+    const itemTypes = [
+      { emoji: "🪙", type: "coins" },
+      { emoji: "⬆️", type: "points" },
+      { emoji: "🕓", type: "xp" },
+      { emoji: "💣", type: "bomb" }
+    ];
+
+    // Spawn a single item
+    function spawnItem() {
+      const item = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+      const el = document.createElement("div");
+      el.className = "item";
+      el.textContent = item.emoji;
+
+      // Random position inside game area
+      el.style.top = Math.random() * 80 + "%";
+      el.style.left = Math.random() * 80 + "%";
+
+      gameArea.appendChild(el);
+
+      el.onclick = () => {
+        collectItem(item.type);
+        el.remove();
+      };
+
+      // Remove after 3 seconds
+      setTimeout(() => {
+        if (el.parentElement) el.remove();
+      }, 3000);
+    }
+
+    // Spawn items every 0.8–1.5 seconds
+    const spawnInterval = setInterval(spawnItem, 800 + Math.random() * 700);
+
+    // End game after 60 seconds
     setTimeout(() => {
+      clearInterval(spawnInterval);
+
       const u = store.users[store.currentUser];
 
       // Apply the results to user stats
@@ -217,27 +255,33 @@ function loadGame() {
       );
 
       location.href = "results.html";
-    }, 60000);
+    }, 60000); // 60 seconds
   };
 }
 
-// Function to handle collecting an emoji
-function collectItem(emoji) {
+// Collect items function (already works with tempResult)
+function collectItem(type) {
   if (!store.tempResult) store.tempResult = { coins: 0, points: 0, xp: 0 };
 
-  let value = 0;
-  if (emoji === "🪙") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
-  if (emoji === "⬆️") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
-  if (emoji === "🕓") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
-  if (emoji === "💣") value = -([5, 10, 20, 50][Math.floor(Math.random() * 4)]);
+  let amount = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
 
-  if (emoji === "🪙") store.tempResult.coins += value;
-  if (emoji === "⬆️") store.tempResult.points += value;
-  if (emoji === "🕓") store.tempResult.xp += value;
-  if (emoji === "💣") {
-    store.tempResult.coins += value;
-    store.tempResult.points += value;
-    store.tempResult.xp += value;
+  const u = store.users[store.currentUser];
+
+  switch (type) {
+    case "coins":
+      store.tempResult.coins += amount;
+      break;
+    case "points":
+      store.tempResult.points += amount;
+      break;
+    case "xp":
+      store.tempResult.xp += amount;
+      break;
+    case "bomb":
+      // Bomb takes away coins only
+      store.tempResult.coins -= amount;
+      if (store.tempResult.coins < 0) store.tempResult.coins = 0;
+      break;
   }
 
   saveAll();
