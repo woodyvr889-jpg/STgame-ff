@@ -261,13 +261,15 @@ function loadResults() {
   title.textContent = "Well done!";
   msg.textContent = "Your results have been recorded. Please tell James your score.";
 
+  // Get the results from the last game session
   const result = store.tempResult || { coins: 0, points: 0, xp: 0 };
 
+  // Update the results dynamically in the page
   document.getElementById("coinsResult").textContent = `✅ Coins Collected: ${result.coins}`;
   document.getElementById("pointsResult").textContent = `🎯 Points Earned: ${result.points}`;
   document.getElementById("xpResult").textContent = `🌟 XP Gained: ${result.xp}`;
 
-  // Clear tempResult after showing
+  // Clear temporary results after displaying
   store.tempResult = null;
   saveAll();
 }
