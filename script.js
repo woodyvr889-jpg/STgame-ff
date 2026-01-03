@@ -30,19 +30,32 @@ const USER_CODES = {
 **************************/
 const store = {
   users: JSON.parse(localStorage.getItem("users")) || {},
-  currentUser: localStorage.getItem("currentUser"),
-  purchaseRequests: JSON.parse(localStorage.getItem("purchaseRequests")) || [],
+  currentUser: localStorage.getItem("currentUser") || null,
   settings: JSON.parse(localStorage.getItem("settings")) || {
-    onePlayOnly: false,
+    onePlayOnly: true,
     gameLocked: false,
     shopLocked: false
-  }
+  },
+  activityLog: JSON.parse(localStorage.getItem("activityLog")) || []
 };
 
 function saveAll() {
   localStorage.setItem("users", JSON.stringify(store.users));
-  localStorage.setItem("purchaseRequests", JSON.stringify(store.purchaseRequests));
   localStorage.setItem("settings", JSON.stringify(store.settings));
+  localStorage.setItem("activityLog", JSON.stringify(store.activityLog));
+}
+
+/*************************
+  ACTIVITY LOGGING
+**************************/
+function logActivity(type, detail = "") {
+  store.activityLog.push({
+    user: store.currentUser || "system",
+    type,
+    detail,
+    time: new Date().toISOString()
+  });
+  saveAll();
 }
 
 /*************************
@@ -76,6 +89,13 @@ function requireAdmin() {
 }
 
 /*************************
+  NAVIGATION (GLOBAL)
+**************************/
+function go(page) {
+  location.href = page;
+}
+
+/*************************
   LOGIN
 **************************/
 function loadLogin() {
@@ -104,16 +124,19 @@ function loadLogin() {
 
   document.querySelectorAll(".key-btn").forEach(btn => {
     btn.onclick = () => {
-      if (btn.dataset.num) {
-        if (code.length < 8) code += btn.dataset.num;
+      if (btn.dataset.num && code.length < 8) {
+        code += btn.dataset.num;
       }
 
-      if (btn.dataset.action === "clear") code = "";
+      if (btn.dataset.action === "clear") {
+        code = "";
+      }
 
       if (btn.dataset.action === "enter") {
         if (USER_CODES[store.tempUser] === code) {
           store.currentUser = store.tempUser;
           localStorage.setItem("currentUser", store.currentUser);
+          logActivity("login", "User logged in");
           location.href = "hub.html";
         } else {
           error.textContent = "Wrong code";
@@ -148,7 +171,7 @@ function loadHub() {
 }
 
 /*************************
-  GAME
+  GAME (NO STAT CHANGES)
 **************************/
 function loadGame() {
   requireLogin();
@@ -159,28 +182,19 @@ function loadGame() {
     return;
   }
 
-  const u = store.users[store.currentUser];
   const status = document.getElementById("gameStatus");
   const btn = document.getElementById("startGameBtn");
 
   status.textContent = "Ready to play";
 
   btn.onclick = () => {
-    if (store.settings.onePlayOnly && u.gamesPlayed > 0) {
-      alert("You already played");
-      return;
-    }
-
-    status.textContent = "Playing...";
+    status.textContent = "Game in progress...";
     btn.disabled = true;
 
-    setTimeout(() => {
-      u.gamesPlayed++;
-      u.xp += 25;
-      u.coins += 15;
-      u.points += 5;
-      saveAll();
+    logActivity("game-start", "Started game");
 
+    setTimeout(() => {
+      logActivity("game-finish", "Finished game");
       status.textContent = "Game finished!";
       btn.disabled = false;
     }, 3000);
@@ -188,7 +202,7 @@ function loadGame() {
 }
 
 /*************************
-  SHOP
+  SHOP (REQUEST ONLY)
 **************************/
 function loadShop() {
   requireLogin();
@@ -204,54 +218,31 @@ function loadShop() {
 
   document.querySelectorAll(".request-buy-btn").forEach(btn => {
     btn.onclick = () => {
-      store.purchaseRequests.push({
-        user: store.currentUser,
-        item: btn.dataset.item,
-        price: Number(btn.dataset.price),
-        status: "pending"
-      });
-      saveAll();
+      logActivity("shop-request", btn.dataset.item);
       alert("Request sent");
     };
   });
 }
 
 /*************************
-  RECORDS
+  RECORDS (ADMIN)
 **************************/
 function loadRecords() {
   requireAdmin();
-  const body = document.querySelector("#purchaseRequestsTable tbody");
+
+  const body = document.querySelector("#recordsTable tbody");
   body.innerHTML = "";
 
-  store.purchaseRequests.forEach((r, i) => {
-    if (r.status !== "pending") return;
-
+  store.activityLog.forEach(r => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${r.user}</td>
-      <td>${r.item}</td>
-      <td>${r.price}</td>
-      <td><button>Approve</button></td>
+      <td>${r.type}</td>
+      <td>${r.detail}</td>
+      <td>${new Date(r.time).toLocaleString()}</td>
     `;
-    tr.querySelector("button").onclick = () => approvePurchase(i);
     body.appendChild(tr);
   });
-}
-
-function approvePurchase(i) {
-  const r = store.purchaseRequests[i];
-  const u = store.users[r.user];
-
-  if (u.coins < r.price) {
-    alert("Not enough coins");
-    return;
-  }
-
-  u.coins -= r.price;
-  r.status = "approved";
-  saveAll();
-  loadRecords();
 }
 
 /*************************
@@ -269,16 +260,19 @@ function loadAdmin() {
 
   document.getElementById("toggleGamePlay").onchange = e => {
     store.settings.onePlayOnly = e.target.checked;
+    logActivity("admin-setting", "One play only toggled");
     saveAll();
   };
 
   document.getElementById("toggleGameLock").onchange = e => {
     store.settings.gameLocked = e.target.checked;
+    logActivity("admin-setting", "Game lock toggled");
     saveAll();
   };
 
   document.getElementById("toggleShopLock").onchange = e => {
     store.settings.shopLocked = e.target.checked;
+    logActivity("admin-setting", "Shop lock toggled");
     saveAll();
   };
 
@@ -289,10 +283,10 @@ function loadAdmin() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${name}</td>
-      <td><input value="${u.coins}"></td>
-      <td><input value="${u.points}"></td>
-      <td><input value="${u.xp}"></td>
-      <td><input value="${u.gamesPlayed}"></td>
+      <td><input type="number" value="${u.coins}"></td>
+      <td><input type="number" value="${u.points}"></td>
+      <td><input type="number" value="${u.xp}"></td>
+      <td><input type="number" value="${u.gamesPlayed}"></td>
     `;
 
     const inputs = tr.querySelectorAll("input");
@@ -301,10 +295,15 @@ function loadAdmin() {
     inputs[2].onchange = e => (u.xp = +e.target.value);
     inputs[3].onchange = e => (u.gamesPlayed = +e.target.value);
 
+    inputs.forEach(i => {
+      i.onchange = () => {
+        logActivity("admin-edit", `${name} stats changed`);
+        saveAll();
+      };
+    });
+
     body.appendChild(tr);
   });
-
-  body.onchange = saveAll;
 }
 
 /*************************
