@@ -195,52 +195,52 @@ function loadGame() {
 
     logActivity("game-start", "Started game");
 
-    function loadGame() {
-  requireLogin();
+    // Reset temporary results
+    store.tempResult = { coins: 0, points: 0, xp: 0 };
+    saveAll();
 
-  const status = document.getElementById("gameStatus");
-  const btn = document.getElementById("startGameBtn");
-
-  btn.onclick = () => {
     // 60-second gameplay timer
-    setTimeout(() => {
-      // Calculate rewards randomly
-      // Update store.tempResult
-      // Update user stats
-      location.href = "results.html";
-    }, 60000);
-  };
-    }
-
-    // Simulate 60-second gameplay and dynamic rewards
     setTimeout(() => {
       const u = store.users[store.currentUser];
 
-      // Example: dynamically calculate rewards from game session
-      const coinsEarned = Math.floor(Math.random() * 50) + 10;   // 10–59 coins
-      const pointsEarned = Math.floor(Math.random() * 20) + 5;   // 5–24 points
-      const xpEarned = Math.floor(Math.random() * 30) + 10;      // 10–39 XP
-
-      // Save temporary results for results page
-      store.tempResult = {
-        coins: coinsEarned,
-        points: pointsEarned,
-        xp: xpEarned
-      };
-      saveAll();
-
-      // Update user stats
-      u.coins += coinsEarned;
-      u.points += pointsEarned;
-      u.xp += xpEarned;
+      // Apply the results to user stats
+      u.coins += store.tempResult.coins;
+      u.points += store.tempResult.points;
+      u.xp += store.tempResult.xp;
       u.gamesPlayed += 1;
 
       saveAll();
-      logActivity("game-finish", `Finished game. Coins: ${coinsEarned}, Points: ${pointsEarned}, XP: ${xpEarned}`);
+
+      logActivity(
+        "game-finish",
+        `Finished game. Coins: ${store.tempResult.coins}, Points: ${store.tempResult.points}, XP: ${store.tempResult.xp}`
+      );
 
       location.href = "results.html";
-    }, 60000); // 60 seconds
+    }, 60000);
   };
+}
+
+// Function to handle collecting an emoji
+function collectItem(emoji) {
+  if (!store.tempResult) store.tempResult = { coins: 0, points: 0, xp: 0 };
+
+  let value = 0;
+  if (emoji === "🪙") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
+  if (emoji === "⬆️") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
+  if (emoji === "🕓") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
+  if (emoji === "💣") value = -([5, 10, 20, 50][Math.floor(Math.random() * 4)]);
+
+  if (emoji === "🪙") store.tempResult.coins += value;
+  if (emoji === "⬆️") store.tempResult.points += value;
+  if (emoji === "🕓") store.tempResult.xp += value;
+  if (emoji === "💣") {
+    store.tempResult.coins += value;
+    store.tempResult.points += value;
+    store.tempResult.xp += value;
+  }
+
+  saveAll();
 }
 
 /*************************
