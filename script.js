@@ -195,6 +195,23 @@ function loadGame() {
 
     logActivity("game-start", "Started game");
 
+    function loadGame() {
+  requireLogin();
+
+  const status = document.getElementById("gameStatus");
+  const btn = document.getElementById("startGameBtn");
+
+  btn.onclick = () => {
+    // 60-second gameplay timer
+    setTimeout(() => {
+      // Calculate rewards randomly
+      // Update store.tempResult
+      // Update user stats
+      location.href = "results.html";
+    }, 60000);
+  };
+    }
+
     // Simulate 60-second gameplay and dynamic rewards
     setTimeout(() => {
       const u = store.users[store.currentUser];
