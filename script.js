@@ -36,13 +36,15 @@ const store = {
     gameLocked: false,
     shopLocked: false
   },
-  activityLog: JSON.parse(localStorage.getItem("activityLog")) || []
+  activityLog: JSON.parse(localStorage.getItem("activityLog")) || [],
+  tempResult: JSON.parse(localStorage.getItem("tempResult")) || null
 };
 
 function saveAll() {
   localStorage.setItem("users", JSON.stringify(store.users));
   localStorage.setItem("settings", JSON.stringify(store.settings));
   localStorage.setItem("activityLog", JSON.stringify(store.activityLog));
+  localStorage.setItem("tempResult", JSON.stringify(store.tempResult));
 }
 
 /*************************
@@ -193,15 +195,34 @@ function loadGame() {
 
     logActivity("game-start", "Started game");
 
+    // Simulate 60-second gameplay and dynamic rewards
     setTimeout(() => {
-      logActivity("game-finish", "Finished game");
-
       const u = store.users[store.currentUser];
-      u.gamesPlayed += 1;
+
+      // Example: dynamically calculate rewards from game session
+      const coinsEarned = Math.floor(Math.random() * 50) + 10;   // 10–59 coins
+      const pointsEarned = Math.floor(Math.random() * 20) + 5;   // 5–24 points
+      const xpEarned = Math.floor(Math.random() * 30) + 10;      // 10–39 XP
+
+      // Save temporary results for results page
+      store.tempResult = {
+        coins: coinsEarned,
+        points: pointsEarned,
+        xp: xpEarned
+      };
       saveAll();
 
+      // Update user stats
+      u.coins += coinsEarned;
+      u.points += pointsEarned;
+      u.xp += xpEarned;
+      u.gamesPlayed += 1;
+
+      saveAll();
+      logActivity("game-finish", `Finished game. Coins: ${coinsEarned}, Points: ${pointsEarned}, XP: ${xpEarned}`);
+
       location.href = "results.html";
-    }, 3000);
+    }, 60000); // 60 seconds
   };
 }
 
@@ -239,6 +260,16 @@ function loadResults() {
 
   title.textContent = "Well done!";
   msg.textContent = "Your results have been recorded. Please tell James your score.";
+
+  const result = store.tempResult || { coins: 0, points: 0, xp: 0 };
+
+  document.getElementById("coinsResult").textContent = `✅ Coins Collected: ${result.coins}`;
+  document.getElementById("pointsResult").textContent = `🎯 Points Earned: ${result.points}`;
+  document.getElementById("xpResult").textContent = `🌟 XP Gained: ${result.xp}`;
+
+  // Clear tempResult after showing
+  store.tempResult = null;
+  saveAll();
 }
 
 /*************************
