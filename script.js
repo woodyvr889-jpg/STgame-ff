@@ -194,14 +194,14 @@ function loadGame() {
     logActivity("game-start", "Started game");
 
     setTimeout(() => {
-  logActivity("game-finish", "Finished game");
+      logActivity("game-finish", "Finished game");
 
-  const u = store.users[store.currentUser];
-  u.gamesPlayed += 1;
-  saveAll();
+      const u = store.users[store.currentUser];
+      u.gamesPlayed += 1;
+      saveAll();
 
-  location.href = "results.html";
-}, 3000);
+      location.href = "results.html";
+    }, 3000);
   };
 }
 
@@ -226,6 +226,19 @@ function loadShop() {
       alert("Request sent");
     };
   });
+}
+
+/*************************
+  RESULTS
+**************************/
+function loadResults() {
+  requireLogin();
+
+  const title = document.getElementById("resultTitle");
+  const msg = document.getElementById("resultMessage");
+
+  title.textContent = "Well done!";
+  msg.textContent = "Your results have been recorded. Please tell James your score.";
 }
 
 /*************************
@@ -321,4 +334,5 @@ document.addEventListener("DOMContentLoaded", () => {
   if (page === "shop") loadShop();
   if (page === "records") loadRecords();
   if (page === "admin") loadAdmin();
+  if (page === "results") loadResults();
 });
