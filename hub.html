@@ -1,37 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-page="hub">
 <head>
-<meta charset="UTF-8">
-<title>Stranger Things Hub</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stranger Things Hub</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+  <style>
+    h1, h2, h3, button {
+      font-family: 'Creepster', cursive;
+      font-weight: bold;
+      color: #ff3c00;
+      text-shadow: 0 0 8px #ff3c00;
+    }
+
+    .hub-section {
+      background: rgba(20, 25, 35, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 15px auto;
+      max-width: 900px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    }
+
+    .hub-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .hub-buttons button {
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: #ff3c00;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .hub-buttons button:hover {
+      box-shadow: 0 0 15px #ff3c00;
+      transform: translateY(-2px);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .stats-box {
+      background: rgba(30,30,50,0.85);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.1rem;
+      color: #ffb347;
+    }
+
+    .leaderboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .leaderboard-box {
+      background: rgba(40,40,60,0.85);
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .leaderboard-box h3 {
+      margin-bottom: 10px;
+      color: #ff3c00;
+    }
+
+    .leaderboard-box ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .leaderboard-box li {
+      padding: 4px 0;
+      color: #fff;
+    }
+
+    .daily-spin {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .spin-btn {
+      padding: 12px 25px;
+      border-radius: 12px;
+      background: #ff3c00;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .spin-btn:hover {
+      box-shadow: 0 0 15px #ff3c00;
+      transform: translateY(-2px);
+    }
+
+    .tips {
+      margin-top: 10px;
+      font-style: italic;
+      color: #f1f1f1;
+    }
+
+  </style>
 </head>
-<body data-page="hub" class="st-theme">
+<body>
 
-<header class="top-header glass compact">
-  <h1 class="app-title">Stranger Things Hub</h1>
-  <nav class="nav-buttons glass">
-    <button id="btnGame">Game</button>
-    <button id="btnShop">Shop</button>
-    <button id="btnAdmin">Admin</button>
-    <button id="btnRecords">Records</button>
-    <button id="btnLogout">Logout</button>
-  </nav>
-</header>
+  <div class="top-header">
+    <div class="app-title">Stranger Things Hub</div>
+    <div class="header-sub">Welcome, <span id="hubUserName"></span>!</div>
+  </div>
 
-<main class="main-shell">
-  <section class="card glass">
+  <!-- Navigation buttons -->
+  <div class="hub-section hub-buttons">
+    <button onclick="go('game.html')">Play Game</button>
+    <button onclick="go('shop.html')">Shop</button>
+    <button onclick="go('records.html')">Records</button>
+    <button onclick="go('admin.html')">Admin</button>
+    <button onclick="go('notifications.html')">Notifications</button>
+    <button onclick="localStorage.removeItem('currentUser'); location.href='index.html'">Logout</button>
+  </div>
+
+  <!-- Player Stats -->
+  <div class="hub-section">
     <h2>Player Stats</h2>
-    <div class="user-stats">
-      <p>Username: <span id="hubUserName"></span></p>
-      <p>Coins: <span id="userCoins"></span></p>
-      <p>Points: <span id="userPoints"></span></p>
-      <p>XP: <span id="userXP"></span></p>
-      <p>Games Played: <span id="userGamesPlayed"></span></p>
+    <div class="stats-grid">
+      <div class="stats-box">Coins: <span id="userCoins"></span></div>
+      <div class="stats-box">Points: <span id="userPoints"></span></div>
+      <div class="stats-box">XP: <span id="userXP"></span></div>
+      <div class="stats-box">Games Played: <span id="userGamesPlayed"></span></div>
     </div>
-  </section>
-</main>
+  </div>
 
-<script src="script.js"></script>
+  <!-- Daily Spin -->
+  <div class="hub-section daily-spin">
+    <h2>Daily Spin</h2>
+    <button class="spin-btn" id="spinBtn">Spin the Wheel!</button>
+    <div class="tips">Make sure to allow notifications to get reminders to do your daily game!</div>
+    <div id="spinResult" style="margin-top:10px; font-weight:bold; color:#ff3c00;"></div>
+  </div>
+
+  <!-- Leaderboards -->
+  <div class="hub-section">
+    <h2>Leaderboards</h2>
+    <div class="leaderboard-grid">
+      <div class="leaderboard-box">
+        <h3>Coins</h3>
+        <ul id="coinsLeaderboard"></ul>
+      </div>
+      <div class="leaderboard-box">
+        <h3>Points</h3>
+        <ul id="pointsLeaderboard"></ul>
+      </div>
+      <div class="leaderboard-box">
+        <h3>XP</h3>
+        <ul id="xpLeaderboard"></ul>
+      </div>
+      <div class="leaderboard-box">
+        <h3>Games Played</h3>
+        <ul id="gamesLeaderboard"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Leaderboard logic
+    function updateLeaderboards() {
+      const users = Object.entries(store.users);
+      const sortAndDisplay = (metric, elId) => {
+        const sorted = users.sort((a,b) => b[1][metric] - a[1][metric]);
+        const ul = document.getElementById(elId);
+        ul.innerHTML = "";
+        sorted.forEach(([name, u]) => {
+          const li = document.createElement("li");
+          li.textContent = `${name}: ${u[metric]}`;
+          ul.appendChild(li);
+        });
+      };
+      sortAndDisplay("coins", "coinsLeaderboard");
+      sortAndDisplay("points", "pointsLeaderboard");
+      sortAndDisplay("xp", "xpLeaderboard");
+      sortAndDisplay("gamesPlayed", "gamesLeaderboard");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      updateLeaderboards();
+
+      // Daily spin
+      const spinBtn = document.getElementById("spinBtn");
+      const spinResult = document.getElementById("spinResult");
+      spinBtn.onclick = () => {
+        const rewards = ["10 Coins", "50 Coins", "100 Coins", "100 Points", "X2 Game Rewards", "X5 Game Rewards", "1 Extra Spin", "Nothing"];
+        const reward = rewards[Math.floor(Math.random()*rewards.length)];
+        spinResult.textContent = `You got: ${reward}!`;
+        // TODO: Update player stats accordingly
+        spinBtn.disabled = true;
+        setTimeout(() => spinBtn.disabled = false, 5000);
+      };
+    });
+  </script>
+
 </body>
 </html>
