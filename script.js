@@ -194,10 +194,14 @@ function loadGame() {
     logActivity("game-start", "Started game");
 
     setTimeout(() => {
-      logActivity("game-finish", "Finished game");
-      status.textContent = "Game finished!";
-      btn.disabled = false;
-    }, 3000);
+  logActivity("game-finish", "Finished game");
+
+  const u = store.users[store.currentUser];
+  u.gamesPlayed += 1;
+  saveAll();
+
+  location.href = "results.html";
+}, 3000);
   };
 }
 
