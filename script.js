@@ -1,7 +1,18 @@
 /*************************
-  GLOBAL STATE + STORAGE
+  CONFIG
 **************************/
 const ADMIN_NAME = "James";
+
+const MEMBERS = [
+  "Dad",
+  "Grandad Darren",
+  "Grandad Steve",
+  "Grandma Jean",
+  "James",
+  "Mum",
+  "Nannan",
+  "Uncle Paul"
+];
 
 const USER_CODES = {
   "James": "080512",
@@ -11,12 +22,15 @@ const USER_CODES = {
   "Dad": "2085",
   "Grandad Steve": "2468",
   "Uncle Paul": "1122",
-  "Grandad Darren": "8765",
+  "Grandad Darren": "8765"
 };
 
+/*************************
+  GLOBAL STATE
+**************************/
 const store = {
   users: JSON.parse(localStorage.getItem("users")) || {},
-  currentUser: localStorage.getItem("currentUser") || null,
+  currentUser: localStorage.getItem("currentUser"),
   purchaseRequests: JSON.parse(localStorage.getItem("purchaseRequests")) || [],
   settings: JSON.parse(localStorage.getItem("settings")) || {
     onePlayOnly: false,
@@ -31,184 +45,162 @@ function saveAll() {
   localStorage.setItem("settings", JSON.stringify(store.settings));
 }
 
-// Ensure all members exist in store.users
-Object.keys(USER_CODES).forEach(name => {
+/*************************
+  INIT USERS (ONCE)
+**************************/
+MEMBERS.forEach(name => {
   if (!store.users[name]) {
-    store.users[name] = { coins: 100, points: 50, xp: 0, gamesPlayed: 0 };
+    store.users[name] = {
+      coins: 0,
+      points: 0,
+      xp: 0,
+      gamesPlayed: 0
+    };
   }
 });
 saveAll();
 
 /*************************
-  AUTH + GUARDS
+  AUTH
 **************************/
 function requireLogin() {
-  if (!store.currentUser) window.location.href = "index.html";
+  if (!store.currentUser) location.href = "index.html";
 }
 
 function requireAdmin() {
   requireLogin();
   if (store.currentUser !== ADMIN_NAME) {
-    alert("Admins only.");
-    window.location.href = "hub.html";
+    alert("Admins only");
+    location.href = "hub.html";
   }
 }
 
 /*************************
-  LOGIN PAGE
+  LOGIN
 **************************/
 function loadLogin() {
-  const profilesDiv = document.getElementById("loginProfiles");
-  const keypadSection = document.getElementById("keypadSection");
-  const keypadDisplay = document.getElementById("keypadDisplay");
-  const loginError = document.getElementById("loginError");
+  const profiles = document.getElementById("loginProfiles");
+  const keypad = document.getElementById("keypadSection");
+  const display = document.getElementById("keypadDisplay");
+  const error = document.getElementById("loginError");
 
-  profilesDiv.innerHTML = "";
+  profiles.innerHTML = "";
+  keypad.classList.add("hidden");
 
-  // Alphabetical order of members
-  const members = Object.keys(USER_CODES).sort();
-
-  // Populate login profiles
-  members.forEach(u => {
+  MEMBERS.forEach(name => {
     const card = document.createElement("div");
     card.className = "user-card";
-    card.textContent = u;
+    card.textContent = name;
     card.onclick = () => {
-      store.tempUser = u;
-      profilesDiv.classList.add("hidden");
-      keypadSection.classList.remove("hidden");
-      code = "";
-      keypadDisplay.textContent = "----";
-      loginError.textContent = "";
+      store.tempUser = name;
+      profiles.classList.add("hidden");
+      keypad.classList.remove("hidden");
+      display.textContent = "--------";
     };
-    profilesDiv.appendChild(card);
+    profiles.appendChild(card);
   });
 
-  // Keypad functionality
   let code = "";
+
   document.querySelectorAll(".key-btn").forEach(btn => {
     btn.onclick = () => {
-      if (btn.dataset.num !== undefined) {
-        if (code.length < 8) code += btn.dataset.num; // max 8 digits
-      } else if (btn.dataset.action === "clear") {
-        code = "";
-      } else if (btn.dataset.action === "enter") {
+      if (btn.dataset.num) {
+        if (code.length < 8) code += btn.dataset.num;
+      }
+
+      if (btn.dataset.action === "clear") code = "";
+
+      if (btn.dataset.action === "enter") {
         if (USER_CODES[store.tempUser] === code) {
           store.currentUser = store.tempUser;
-          saveAll();
-          window.location.href = "hub.html";
+          localStorage.setItem("currentUser", store.currentUser);
+          location.href = "hub.html";
         } else {
-          loginError.textContent = "Wrong code!";
+          error.textContent = "Wrong code";
         }
         code = "";
       }
-      keypadDisplay.textContent = code.padEnd(4, "-");
+
+      display.textContent = code.padEnd(8, "-");
     };
   });
 
   document.getElementById("backToProfiles").onclick = () => {
-    keypadSection.classList.add("hidden");
-    profilesDiv.classList.remove("hidden");
+    keypad.classList.add("hidden");
+    profiles.classList.remove("hidden");
     code = "";
-    keypadDisplay.textContent = "----";
-    loginError.textContent = "";
+    error.textContent = "";
   };
 }
 
 /*************************
-  NAV BUTTONS
-**************************/
-function wireNav() {
-  const go = (id, page) => {
-    const b = document.getElementById(id);
-    if (b) b.onclick = () => {
-      if (page === "game" && store.settings.gameLocked) {
-        alert("Game page is locked by admin.");
-        return;
-      }
-      if (page === "shop" && store.settings.shopLocked) {
-        alert("Shop page is locked by admin.");
-        return;
-      }
-      window.location.href = page;
-    };
-  };
-
-  go("btnHub", "hub.html");
-  go("btnGame", "game.html");
-  go("btnShop", "shop.html");
-  go("btnAdmin", "admin.html");
-  go("btnUpsideDown", "upsidedown.html");
-  go("btnRecords", "records.html");
-
-  const logout = document.getElementById("btnLogout");
-  if (logout) logout.onclick = () => {
-    localStorage.removeItem("currentUser");
-    window.location.href = "index.html";
-  };
-
-  const backToHub = document.getElementById("backToHub");
-  if (backToHub) backToHub.onclick = () => window.location.href = "hub.html";
-}
-
-/*************************
-  HUB PAGE
+  HUB
 **************************/
 function loadHub() {
   requireLogin();
   const u = store.users[store.currentUser];
+
   document.getElementById("hubUserName").textContent = store.currentUser;
-  document.getElementById("userCoins").textContent = u.coins || 0;
-  document.getElementById("userPoints").textContent = u.points || 0;
-  document.getElementById("userXP").textContent = u.xp || 0;
-  document.getElementById("userGamesPlayed").textContent = u.gamesPlayed || 0;
+  document.getElementById("userCoins").textContent = u.coins;
+  document.getElementById("userPoints").textContent = u.points;
+  document.getElementById("userXP").textContent = u.xp;
+  document.getElementById("userGamesPlayed").textContent = u.gamesPlayed;
 }
 
 /*************************
-  GAME PAGE
+  GAME
 **************************/
 function loadGame() {
   requireLogin();
 
   if (store.settings.gameLocked) {
-    alert("Game page is locked by admin.");
-    window.location.href = "hub.html";
+    alert("Game locked by admin");
+    location.href = "hub.html";
     return;
   }
 
   const u = store.users[store.currentUser];
+  const status = document.getElementById("gameStatus");
+  const btn = document.getElementById("startGameBtn");
 
-  if (store.settings.onePlayOnly && u.gamesPlayed > 0) {
-    alert("You can only play once.");
-    window.location.href = "hub.html";
-    return;
-  }
+  status.textContent = "Ready to play";
 
-  const startBtn = document.getElementById("startGameBtn");
-  if (startBtn) startBtn.onclick = () => {
-    u.gamesPlayed = (u.gamesPlayed || 0) + 1;
-    u.xp = (u.xp || 0) + 50;
-    u.coins = (u.coins || 0) + 10;
-    saveAll();
-    alert("Game finished! Stats saved.");
-    window.location.href = "hub.html";
+  btn.onclick = () => {
+    if (store.settings.onePlayOnly && u.gamesPlayed > 0) {
+      alert("You already played");
+      return;
+    }
+
+    status.textContent = "Playing...";
+    btn.disabled = true;
+
+    setTimeout(() => {
+      u.gamesPlayed++;
+      u.xp += 25;
+      u.coins += 15;
+      u.points += 5;
+      saveAll();
+
+      status.textContent = "Game finished!";
+      btn.disabled = false;
+    }, 3000);
   };
 }
 
 /*************************
-  SHOP PAGE
+  SHOP
 **************************/
 function loadShop() {
   requireLogin();
 
   if (store.settings.shopLocked) {
-    alert("Shop page is locked by admin.");
-    window.location.href = "hub.html";
+    alert("Shop locked by admin");
+    location.href = "hub.html";
     return;
   }
 
-  const u = store.users[store.currentUser];
-  document.getElementById("shopCoins").textContent = u.coins || 0;
+  document.getElementById("shopCoins").textContent =
+    store.users[store.currentUser].coins;
 
   document.querySelectorAll(".request-buy-btn").forEach(btn => {
     btn.onclick = () => {
@@ -219,18 +211,18 @@ function loadShop() {
         status: "pending"
       });
       saveAll();
-      alert("Purchase request sent!");
+      alert("Request sent");
     };
   });
 }
 
 /*************************
-  RECORDS PAGE
+  RECORDS
 **************************/
 function loadRecords() {
   requireAdmin();
-  const tbody = document.querySelector("#purchaseRequestsTable tbody");
-  tbody.innerHTML = "";
+  const body = document.querySelector("#purchaseRequestsTable tbody");
+  body.innerHTML = "";
 
   store.purchaseRequests.forEach((r, i) => {
     if (r.status !== "pending") return;
@@ -240,10 +232,10 @@ function loadRecords() {
       <td>${r.user}</td>
       <td>${r.item}</td>
       <td>${r.price}</td>
-      <td><button data-i="${i}">Approve</button></td>
+      <td><button>Approve</button></td>
     `;
     tr.querySelector("button").onclick = () => approvePurchase(i);
-    tbody.appendChild(tr);
+    body.appendChild(tr);
   });
 }
 
@@ -252,7 +244,7 @@ function approvePurchase(i) {
   const u = store.users[r.user];
 
   if (u.coins < r.price) {
-    alert("User lacks coins.");
+    alert("Not enough coins");
     return;
   }
 
@@ -263,64 +255,62 @@ function approvePurchase(i) {
 }
 
 /*************************
-  ADMIN PANEL
+  ADMIN
 **************************/
 function loadAdmin() {
   requireAdmin();
 
-  // One-play toggle
-  const togglePlay = document.getElementById("toggleGamePlay");
-  if (togglePlay) {
-    togglePlay.checked = store.settings.onePlayOnly;
-    togglePlay.onchange = () => {
-      store.settings.onePlayOnly = togglePlay.checked;
-      saveAll();
-    };
-  }
+  document.getElementById("toggleGamePlay").checked =
+    store.settings.onePlayOnly;
+  document.getElementById("toggleGameLock").checked =
+    store.settings.gameLocked;
+  document.getElementById("toggleShopLock").checked =
+    store.settings.shopLocked;
 
-  // Game page lock
-  const toggleGameLock = document.getElementById("toggleGameLock");
-  if (toggleGameLock) {
-    toggleGameLock.checked = store.settings.gameLocked;
-    toggleGameLock.onchange = () => {
-      store.settings.gameLocked = toggleGameLock.checked;
-      saveAll();
-    };
-  }
+  document.getElementById("toggleGamePlay").onchange = e => {
+    store.settings.onePlayOnly = e.target.checked;
+    saveAll();
+  };
 
-  // Shop page lock
-  const toggleShopLock = document.getElementById("toggleShopLock");
-  if (toggleShopLock) {
-    toggleShopLock.checked = store.settings.shopLocked;
-    toggleShopLock.onchange = () => {
-      store.settings.shopLocked = toggleShopLock.checked;
-      saveAll();
-    };
-  }
+  document.getElementById("toggleGameLock").onchange = e => {
+    store.settings.gameLocked = e.target.checked;
+    saveAll();
+  };
 
-  // Show user stats
-  const tbody = document.querySelector("#userStatsTable tbody");
-  tbody.innerHTML = "";
+  document.getElementById("toggleShopLock").onchange = e => {
+    store.settings.shopLocked = e.target.checked;
+    saveAll();
+  };
+
+  const body = document.querySelector("#userStatsTable tbody");
+  body.innerHTML = "";
 
   Object.entries(store.users).forEach(([name, u]) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${name}</td>
-      <td>${u.coins || 0}</td>
-      <td>${u.points || 0}</td>
-      <td>${u.gamesPlayed || 0}</td>
-      <td>${u.xp || 0}</td>
+      <td><input value="${u.coins}"></td>
+      <td><input value="${u.points}"></td>
+      <td><input value="${u.xp}"></td>
+      <td><input value="${u.gamesPlayed}"></td>
     `;
-    tbody.appendChild(tr);
+
+    const inputs = tr.querySelectorAll("input");
+    inputs[0].onchange = e => (u.coins = +e.target.value);
+    inputs[1].onchange = e => (u.points = +e.target.value);
+    inputs[2].onchange = e => (u.xp = +e.target.value);
+    inputs[3].onchange = e => (u.gamesPlayed = +e.target.value);
+
+    body.appendChild(tr);
   });
+
+  body.onchange = saveAll;
 }
 
 /*************************
-  PAGE ROUTER
+  ROUTER
 **************************/
 document.addEventListener("DOMContentLoaded", () => {
-  wireNav();
-
   const page = document.body.dataset.page;
   if (page === "login") loadLogin();
   if (page === "hub") loadHub();
