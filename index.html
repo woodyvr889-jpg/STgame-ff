@@ -1,31 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-page="login">
 <head>
-<meta charset="UTF-8" />
-<title>Stranger Things Game Login</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Stranger Things Hub</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Stranger Things font -->
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+  <style>
+    h1, h2, h3, button {
+      font-family: 'Creepster', cursive;
+      font-weight: bold;
+      color: #ff3c00;
+      text-shadow: 0 0 8px #ff3c00;
+    }
+  </style>
 </head>
-<body data-page="login" class="st-theme">
+<body>
 
-<header class="top-header glass compact">
-  <h1 class="app-title">Stranger Things</h1>
-  <p class="header-sub">Select your profile to continue</p>
-</header>
+  <div class="top-header">
+    <div class="app-title">Stranger Things Login</div>
+    <div class="header-sub">Select your profile and enter your code</div>
+  </div>
 
-<main class="main-shell">
-  <!-- Profile Selection Card -->
-  <section class="card glass" id="profilesCard">
-    <h2>Choose your profile</h2>
-    <div id="loginProfiles" class="user-grid">
-      <!-- JS will populate the user profiles here -->
-    </div>
-  </section>
+  <div id="loginProfiles" class="user-grid card"></div>
 
-  <!-- Keypad Section (hidden until a profile is selected) -->
-  <section id="keypadSection" class="card glass hidden">
-    <h2 id="keypadTitle">Enter your code</h2>
-    <div id="keypadDisplay" class="keypad-display">----</div>
+  <div id="keypadSection" class="card hidden">
+    <div id="keypadDisplay" class="keypad-display">--------</div>
     <div class="keypad">
       <button class="key-btn" data-num="1">1</button>
       <button class="key-btn" data-num="2">2</button>
@@ -36,15 +37,14 @@
       <button class="key-btn" data-num="7">7</button>
       <button class="key-btn" data-num="8">8</button>
       <button class="key-btn" data-num="9">9</button>
-      <button class="key-btn danger" data-action="clear">Clear</button>
+      <button class="key-btn" data-action="clear">C</button>
       <button class="key-btn" data-num="0">0</button>
       <button class="key-btn primary" data-action="enter">Enter</button>
     </div>
-    <p id="loginError" class="muted small"></p>
-    <button id="backToProfiles" class="btn ghost full">⬅ Back</button>
-  </section>
-</main>
+    <div id="loginError" style="color:#ff3c00;margin-top:10px;text-align:center;"></div>
+    <button id="backToProfiles" class="btn ghost" style="margin-top:15px;">Back to Profiles</button>
+  </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
