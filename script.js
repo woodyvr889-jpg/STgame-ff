@@ -1,406 +1,273 @@
-/*************************
-  CONFIG
-**************************/
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+let currentUser = null;
+
 const ADMIN_NAME = "James";
+const ADMIN_CODE = "080512";
 
-const MEMBERS = [
-  "Dad",
-  "Grandad Darren",
-  "Grandad Steve",
-  "Grandma Jean",
-  "James",
-  "Mum",
-  "Nannan",
-  "Uncle Paul"
-];
-
-const USER_CODES = {
-  "James": "080512",
-  "Nannan": "4213",
-  "Mum": "2206",
-  "Grandma Jean": "1357",
-  "Dad": "2085",
-  "Grandad Steve": "2468",
-  "Uncle Paul": "1122",
-  "Grandad Darren": "8765"
+/* Temp game results (used between game -> results) */
+let tempResult = {
+  coins: 0,
+  points: 0,
+  xp: 0
 };
 
-/*************************
-  GLOBAL STATE
-**************************/
-const store = {
-  users: JSON.parse(localStorage.getItem("users")) || {},
-  currentUser: localStorage.getItem("currentUser") || null,
-  settings: JSON.parse(localStorage.getItem("settings")) || {
-    onePlayOnly: true,
-    gameLocked: false,
-    shopLocked: false
-  },
-  activityLog: JSON.parse(localStorage.getItem("activityLog")) || [],
-  tempResult: JSON.parse(localStorage.getItem("tempResult")) || null
+/* Persistent user data */
+let users = JSON.parse(localStorage.getItem("users")) || {
+  James: { coins: 0, points: 0, xp: 0 },
+  Dad: { coins: 0, points: 0, xp: 0 },
+  Mum: { coins: 0, points: 0, xp: 0 },
+  Nannan: { coins: 0, points: 0, xp: 0 },
+  "Grandad Darren": { coins: 0, points: 0, xp: 0 },
+  "Grandad Steve": { coins: 0, points: 0, xp: 0 },
+  "Grandma Jean": { coins: 0, points: 0, xp: 0 },
+  "Uncle Paul": { coins: 0, points: 0, xp: 0 }
 };
 
+/* Activity log (records page) */
+let activityLog = JSON.parse(localStorage.getItem("activityLog")) || [];
+
+/* =========================================================
+   UTILS
+========================================================= */
 function saveAll() {
-  localStorage.setItem("users", JSON.stringify(store.users));
-  localStorage.setItem("settings", JSON.stringify(store.settings));
-  localStorage.setItem("activityLog", JSON.stringify(store.activityLog));
-  localStorage.setItem("tempResult", JSON.stringify(store.tempResult));
+  localStorage.setItem("users", JSON.stringify(users));
+  localStorage.setItem("activityLog", JSON.stringify(activityLog));
 }
 
-/*************************
-  ACTIVITY LOGGING
-**************************/
-function logActivity(type, detail = "") {
-  store.activityLog.push({
-    user: store.currentUser || "system",
-    type,
-    detail,
-    time: new Date().toISOString()
+function logActivity(text) {
+  activityLog.unshift({
+    time: new Date().toLocaleString(),
+    text
   });
   saveAll();
 }
 
-/*************************
-  INIT USERS (ONCE)
-**************************/
-MEMBERS.forEach(name => {
-  if (!store.users[name]) {
-    store.users[name] = {
-      coins: 0,
-      points: 0,
-      xp: 0,
-      gamesPlayed: 0
-    };
-  }
-});
-saveAll();
-
-/*************************
-  AUTH
-**************************/
-function requireLogin() {
-  if (!store.currentUser) location.href = "index.html";
-}
-
-function requireAdmin() {
-  requireLogin();
-  if (store.currentUser !== ADMIN_NAME) {
-    alert("Admins only");
-    location.href = "hub.html";
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+function requestNotifications() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "default") {
+    Notification.requestPermission();
   }
 }
 
-/*************************
-  NAVIGATION
-**************************/
+/* =========================================================
+   LOGIN LOGIC
+========================================================= */
+function selectUser(name) {
+  if (name === ADMIN_NAME) {
+    // Show keypad ONLY for James
+    document.getElementById("keypadSection")?.classList.remove("hidden");
+    document.getElementById("selectedUserName").innerText = "James (Admin)";
+  } else {
+    // Instant login for everyone else
+    loginSuccess(name);
+  }
+}
+
+let enteredCode = "";
+
+function pressKey(num) {
+  enteredCode += num;
+  document.getElementById("codeDisplay").innerText = "*".repeat(enteredCode.length);
+}
+
+function clearCode() {
+  enteredCode = "";
+  document.getElementById("codeDisplay").innerText = "";
+}
+
+function submitCode() {
+  if (enteredCode === ADMIN_CODE) {
+    loginSuccess(ADMIN_NAME);
+  } else {
+    alert("Wrong code");
+    clearCode();
+  }
+}
+
+function loginSuccess(name) {
+  currentUser = name;
+  localStorage.setItem("currentUser", name);
+
+  requestNotifications();
+
+  logActivity(`${name} logged in`);
+  location.href = "hub.html";
+}
+
+/* =========================================================
+   HUB
+========================================================= */
+function loadHub() {
+  currentUser = localStorage.getItem("currentUser");
+  if (!currentUser) location.href = "index.html";
+
+  document.getElementById("welcomeUser").innerText = currentUser;
+
+  // Hide admin-only buttons
+  if (currentUser !== ADMIN_NAME) {
+    document.getElementById("adminBtn")?.classList.add("hidden");
+    document.getElementById("recordsBtn")?.classList.add("hidden");
+  }
+}
+
 function go(page) {
   location.href = page;
 }
 
-/*************************
-  LOGIN
-**************************/
-function loadLogin() {
-  const profiles = document.getElementById("loginProfiles");
-  const keypad = document.getElementById("keypadSection");
-  const display = document.getElementById("keypadDisplay");
-  const error = document.getElementById("loginError");
+/* =========================================================
+   GAME LOGIC
+========================================================= */
+let gameTime = 60;
+let gameInterval = null;
+let spawnInterval = null;
 
-  profiles.innerHTML = "";
-  keypad.classList.add("hidden");
+function startGame() {
+  tempResult = { coins: 0, points: 0, xp: 0 };
+  gameTime = 60;
 
-  MEMBERS.forEach(name => {
-    const card = document.createElement("div");
-    card.className = "user-card";
-    card.textContent = name;
-    card.onclick = () => {
-      store.tempUser = name;
-      profiles.classList.add("hidden");
-      keypad.classList.remove("hidden");
-      display.textContent = "--------";
-    };
-    profiles.appendChild(card);
-  });
+  document.getElementById("timer").innerText = gameTime;
 
-  let code = "";
+  gameInterval = setInterval(() => {
+    gameTime--;
+    document.getElementById("timer").innerText = gameTime;
 
-  document.querySelectorAll(".key-btn").forEach(btn => {
-    btn.onclick = () => {
-      if (btn.dataset.num && code.length < 8) code += btn.dataset.num;
-      if (btn.dataset.action === "clear") code = "";
-      if (btn.dataset.action === "enter") {
-        if (USER_CODES[store.tempUser] === code) {
-          store.currentUser = store.tempUser;
-          localStorage.setItem("currentUser", store.currentUser);
-          logActivity("login", "User logged in");
-          location.href = "hub.html";
-        } else error.textContent = "Wrong code";
-        code = "";
-      }
-      display.textContent = code.padEnd(8, "-");
-    };
-  });
+    if (gameTime <= 0) endGame();
+  }, 1000);
 
-  document.getElementById("backToProfiles").onclick = () => {
-    keypad.classList.add("hidden");
-    profiles.classList.remove("hidden");
-    code = "";
-    error.textContent = "";
-  };
+  spawnInterval = setInterval(spawnItem, 700);
 }
 
-/*************************
-  HUB
-**************************/
-function loadHub() {
-  requireLogin();
-  const u = store.users[store.currentUser];
-
-  document.getElementById("hubUserName").textContent = store.currentUser;
-  document.getElementById("userCoins").textContent = u.coins;
-  document.getElementById("userPoints").textContent = u.points;
-  document.getElementById("userXP").textContent = u.xp;
-  document.getElementById("userGamesPlayed").textContent = u.gamesPlayed;
+function randomValue() {
+  return [5, 10, 20, 50][Math.floor(Math.random() * 4)];
 }
 
-/*************************
-  GAME
-**************************/
-function loadGame() {
-  requireLogin();
-
-  if (store.settings.gameLocked) {
-    alert("Game locked by admin");
-    location.href = "hub.html";
-    return;
-  }
-
-  const status = document.getElementById("gameStatus");
-  const btn = document.getElementById("startGameBtn");
+function spawnItem() {
   const gameArea = document.getElementById("gameArea");
+  if (!gameArea) return;
 
-  status.textContent = "Ready to play";
+  const item = document.createElement("div");
+  item.className = "game-item";
 
-  btn.onclick = () => {
-    status.textContent = "Game in progress...";
-    btn.disabled = true;
+  const types = ["coin", "points", "xp", "bomb"];
+  const type = types[Math.floor(Math.random() * types.length)];
 
-    logActivity("game-start", "Started game");
+  let value = randomValue();
 
-    // Reset tempResult
-    store.tempResult = { coins: 0, points: 0, xp: 0 };
-    saveAll();
+  if (type === "coin") item.innerText = "🪙";
+  if (type === "points") item.innerText = "⬆️";
+  if (type === "xp") item.innerText = "🕓";
+  if (type === "bomb") item.innerText = "💣";
 
-    // Clear game area
-    gameArea.innerHTML = "";
+  item.style.left = Math.random() * 85 + "%";
+  item.style.top = Math.random() * 85 + "%";
 
-    // Emoji types
-    const emojis = ["🪙", "⬆️", "🕓", "💣"];
-    const spawnCount = 15; // how many emojis appear
-
-    for (let i = 0; i < spawnCount; i++) {
-      const emoji = document.createElement("div");
-      const type = emojis[Math.floor(Math.random() * emojis.length)];
-      emoji.textContent = type;
-      emoji.className = "emoji-item emoji-fall";
-      emoji.style.left = Math.random() * (gameArea.clientWidth - 30) + "px";
-      emoji.style.top = -50 - Math.random() * 200 + "px"; // spawn above
-      emoji.style.animationDuration = (3 + Math.random() * 5) + "s";
-
-      emoji.onclick = () => {
-        collectItem(type);
-        emoji.remove(); // disappear when clicked
-      };
-
-      gameArea.appendChild(emoji);
+  item.onclick = () => {
+    if (type === "coin") tempResult.coins += value;
+    if (type === "points") tempResult.points += value;
+    if (type === "xp") tempResult.xp += value;
+    if (type === "bomb") {
+      tempResult.coins -= value;
+      tempResult.points -= value;
+      tempResult.xp -= value;
     }
-
-    // 60s timer to finish
-    setTimeout(() => {
-      const u = store.users[store.currentUser];
-
-      u.coins += store.tempResult.coins;
-      u.points += store.tempResult.points;
-      u.xp += store.tempResult.xp;
-      u.gamesPlayed += 1;
-
-      logActivity(
-        "game-finish",
-        `Finished game. Coins: ${store.tempResult.coins}, Points: ${store.tempResult.points}, XP: ${store.tempResult.xp}`
-      );
-
-      saveAll();
-      location.href = "results.html";
-    }, 60000);
+    item.remove();
   };
+
+  gameArea.appendChild(item);
+
+  setTimeout(() => item.remove(), 1500);
 }
 
-// Collect emojis and update tempResult
-function collectItem(emoji) {
-  if (!store.tempResult) store.tempResult = { coins: 0, points: 0, xp: 0 };
+function endGame() {
+  clearInterval(gameInterval);
+  clearInterval(spawnInterval);
 
-  let value = 0;
-  if (emoji === "🪙") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
-  if (emoji === "⬆️") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
-  if (emoji === "🕓") value = [5, 10, 20, 50][Math.floor(Math.random() * 4)];
-  if (emoji === "💣") value = -([5, 10, 20, 50][Math.floor(Math.random() * 4)]);
+  // Apply results to user
+  const u = users[currentUser];
+  u.coins += tempResult.coins;
+  u.points += tempResult.points;
+  u.xp += tempResult.xp;
 
-  if (emoji === "🪙") store.tempResult.coins += value;
-  if (emoji === "⬆️") store.tempResult.points += value;
-  if (emoji === "🕓") store.tempResult.xp += value;
-  if (emoji === "💣") {
-    store.tempResult.coins += value;
-    store.tempResult.points += value;
-    store.tempResult.xp += value;
-  }
+  logActivity(
+    `${currentUser} played game: +${tempResult.coins} coins, +${tempResult.points} points, +${tempResult.xp} XP`
+  );
 
   saveAll();
+  localStorage.setItem("lastResult", JSON.stringify(tempResult));
+  location.href = "results.html";
 }
 
-/*************************
-  SHOP
-**************************/
-function loadShop() {
-  requireLogin();
+/* =========================================================
+   RESULTS PAGE
+========================================================= */
+function loadResults() {
+  const r = JSON.parse(localStorage.getItem("lastResult"));
+  if (!r) return;
 
-  if (store.settings.shopLocked) {
-    alert("Shop locked by admin");
+  document.getElementById("coinsResult").innerText =
+    `🪙 Coins Collected: ${r.coins}`;
+  document.getElementById("pointsResult").innerText =
+    `🎯 Points Earned: ${r.points}`;
+  document.getElementById("xpResult").innerText =
+    `🌟 XP Gained: ${r.xp}`;
+}
+
+/* =========================================================
+   RECORDS (ADMIN ONLY)
+========================================================= */
+function loadRecords() {
+  currentUser = localStorage.getItem("currentUser");
+  if (currentUser !== ADMIN_NAME) {
+    alert("Admin only");
     location.href = "hub.html";
     return;
   }
 
-  document.getElementById("shopCoins").textContent =
-    store.users[store.currentUser].coins;
+  const table = document.getElementById("recordsTableBody");
+  table.innerHTML = "";
 
-  document.querySelectorAll(".request-buy-btn").forEach(btn => {
-    btn.onclick = () => {
-      logActivity("shop-request", btn.dataset.item);
-      alert("Request sent");
-    };
-  });
-}
-
-/*************************
-  RESULTS
-**************************/
-function loadResults() {
-  requireLogin();
-
-  const title = document.getElementById("resultTitle");
-  const msg = document.getElementById("resultMessage");
-
-  title.textContent = "Well done!";
-  msg.textContent =
-    "Your results have been recorded. Please tell James your score.";
-
-  const result = store.tempResult || { coins: 0, points: 0, xp: 0 };
-
-  document.getElementById(
-    "coinsResult"
-  ).textContent = `✅ Coins Collected: ${result.coins}`;
-  document.getElementById(
-    "pointsResult"
-  ).textContent = `🎯 Points Earned: ${result.points}`;
-  document.getElementById(
-    "xpResult"
-  ).textContent = `🌟 XP Gained: ${result.xp}`;
-
-  store.tempResult = null;
-  saveAll();
-}
-
-/*************************
-  RECORDS (ADMIN)
-**************************/
-function loadRecords() {
-  requireAdmin();
-
-  const body = document.querySelector("#recordsTable tbody");
-  body.innerHTML = "";
-
-  store.activityLog.forEach(r => {
+  activityLog.forEach(entry => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.user}</td>
-      <td>${r.type}</td>
-      <td>${r.detail}</td>
-      <td>${new Date(r.time).toLocaleString()}</td>
-    `;
-    body.appendChild(tr);
+    tr.innerHTML = `<td>${entry.time}</td><td>${entry.text}</td>`;
+    table.appendChild(tr);
   });
 }
 
-/*************************
-  ADMIN
-**************************/
+/* =========================================================
+   ADMIN PAGE
+========================================================= */
 function loadAdmin() {
-  requireAdmin();
+  currentUser = localStorage.getItem("currentUser");
+  if (currentUser !== ADMIN_NAME) {
+    alert("Admin only");
+    location.href = "hub.html";
+    return;
+  }
 
-  document.getElementById("toggleGamePlay").checked =
-    store.settings.onePlayOnly;
-  document.getElementById("toggleGameLock").checked =
-    store.settings.gameLocked;
-  document.getElementById("toggleShopLock").checked =
-    store.settings.shopLocked;
+  const table = document.getElementById("adminTableBody");
+  table.innerHTML = "";
 
-  document.getElementById("toggleGamePlay").onchange = e => {
-    store.settings.onePlayOnly = e.target.checked;
-    logActivity("admin-setting", "One play only toggled");
-    saveAll();
-  };
-
-  document.getElementById("toggleGameLock").onchange = e => {
-    store.settings.gameLocked = e.target.checked;
-    logActivity("admin-setting", "Game lock toggled");
-    saveAll();
-  };
-
-  document.getElementById("toggleShopLock").onchange = e => {
-    store.settings.shopLocked = e.target.checked;
-    logActivity("admin-setting", "Shop lock toggled");
-    saveAll();
-  };
-
-  const body = document.querySelector("#userStatsTable tbody");
-  body.innerHTML = "";
-
-  Object.entries(store.users).forEach(([name, u]) => {
+  Object.keys(users).forEach(name => {
+    const u = users[name];
     const tr = document.createElement("tr");
+
     tr.innerHTML = `
       <td>${name}</td>
-      <td><input type="number" value="${u.coins}"></td>
-      <td><input type="number" value="${u.points}"></td>
-      <td><input type="number" value="${u.xp}"></td>
-      <td><input type="number" value="${u.gamesPlayed}"></td>
+      <td><input value="${u.coins}" onchange="users['${name}'].coins=this.value"></td>
+      <td><input value="${u.points}" onchange="users['${name}'].points=this.value"></td>
+      <td><input value="${u.xp}" onchange="users['${name}'].xp=this.value"></td>
     `;
 
-    const inputs = tr.querySelectorAll("input");
-    inputs[0].onchange = e => (u.coins = +e.target.value);
-    inputs[1].onchange = e => (u.points = +e.target.value);
-    inputs[2].onchange = e => (u.xp = +e.target.value);
-    inputs[3].onchange = e => (u.gamesPlayed = +e.target.value);
-
-    inputs.forEach(i => {
-      i.onchange = () => {
-        logActivity("admin-edit", `${name} stats changed`);
-        saveAll();
-      };
-    });
-
-    body.appendChild(tr);
+    table.appendChild(tr);
   });
 }
 
-/*************************
-  ROUTER
-**************************/
-document.addEventListener("DOMContentLoaded", () => {
-  const page = document.body.dataset.page;
-  if (page === "login") loadLogin();
-  if (page === "hub") loadHub();
-  if (page === "game") loadGame();
-  if (page === "shop") loadShop();
-  if (page === "records") loadRecords();
-  if (page === "admin") loadAdmin();
-  if (page === "results") loadResults();
-});
+function saveAdmin() {
+  saveAll();
+  alert("Saved");
+}
