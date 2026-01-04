@@ -1,46 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Stranger Things Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Controls</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body data-page="admin" class="st-theme">
+<body>
+  <header>
+    <h1>Admin Panel</h1>
+    <button onclick="goToPage('hub.html')">Back to Hub</button>
+  </header>
 
-<header class="top-header glass compact">
-  <h1 class="app-title">Admin Panel</h1>
-  <nav class="nav-buttons glass">
-    <button id="btnHub">Hub</button>
-    <button id="btnLogout">Logout</button>
-  </nav>
-</header>
+  <section class="admin-controls">
+    <h2>Lock Pages</h2>
+    <label><input type="checkbox" id="lock-game"> Lock Game Page</label>
+    <label><input type="checkbox" id="lock-shop"> Lock Shop</label>
+    <label><input type="checkbox" id="lock-daily-spin"> Lock Daily Spin</label>
 
-<main class="main-shell">
-  <section class="card glass">
-    <h2>Settings</h2>
-    <label><input type="checkbox" id="toggleGamePlay"> One Play Only</label><br>
-    <label><input type="checkbox" id="toggleGameLock"> Lock Game Page</label><br>
-    <label><input type="checkbox" id="toggleShopLock"> Lock Shop Page</label>
+    <h2>Player Stats</h2>
+    <div id="admin-player-stats">[Stats Editable Here]</div>
+
+    <h2>Send Notifications</h2>
+    <textarea id="notification-text" placeholder="Enter notification"></textarea>
+    <button id="send-notification">Send</button>
   </section>
 
-  <section class="card glass">
-    <h2>User Stats</h2>
-    <table id="userStatsTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Coins</th>
-          <th>Points</th>
-          <th>Games Played</th>
-          <th>XP</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-</main>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
