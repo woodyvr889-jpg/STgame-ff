@@ -1,139 +1,52 @@
 <!DOCTYPE html>
-<html lang="en" data-page="game">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stranger Things Game</title>
+  <title>Game - Stranger Things</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
-  <style>
-    h1, h2, h3, button {
-      font-family: 'Creepster', cursive;
-      font-weight: bold;
-      color: #ff3c00;
-      text-shadow: 0 0 8px #ff3c00;
-    }
-
-    .game-section {
-      background: rgba(20, 25, 35, 0.85);
-      backdrop-filter: blur(10px);
-      border-radius: 15px;
-      padding: 25px;
-      margin: 20px auto;
-      max-width: 800px;
-      text-align: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-    }
-
-    #gameStatus {
-      font-size: 1.3rem;
-      margin-bottom: 15px;
-      color: #ffb347;
-    }
-
-    #startGameBtn {
-      padding: 12px 25px;
-      border-radius: 12px;
-      background: #ff3c00;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 1.2rem;
-      transition: all 0.2s ease;
-      margin-bottom: 10px;
-    }
-
-    #startGameBtn:hover {
-      box-shadow: 0 0 15px #ff3c00;
-      transform: translateY(-2px);
-    }
-
-    #backToHubBtn {
-      padding: 10px 20px;
-      border-radius: 10px;
-      background: rgba(255,60,0,0.7);
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 1rem;
-      margin-top: 15px;
-      transition: all 0.2s ease;
-    }
-
-    #backToHubBtn:hover {
-      box-shadow: 0 0 12px #ff3c00;
-      transform: translateY(-2px);
-    }
-
-    .mode-selector {
-      margin-bottom: 15px;
-    }
-
-    select {
-      padding: 8px 15px;
-      border-radius: 10px;
-      font-size: 1rem;
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      border: none;
-    }
-
-  </style>
 </head>
 <body>
+  <header>
+    <h1>Stranger Things Game</h1>
+    <button id="back-to-hub">Back to Hub</button>
+  </header>
 
-  <div class="top-header">
-    <div class="app-title">Stranger Things Game</div>
-  </div>
+  <!-- Instructions and Status -->
+  <section class="game-info">
+    <h2>Instructions</h2>
+    <p>Collect coins, clocks, and green arrows (XP) in the map. Use arrow buttons or swipe to move your Pac-Man avatar. Avoid obstacles and finish before time runs out!</p>
+    
+    <h3>Game Status</h3>
+    <ul>
+      <li>Score: <span id="score">0</span></li>
+      <li>Coins Collected: <span id="coins-collected">0</span></li>
+      <li>XP Collected: <span id="xp-collected">0</span></li>
+      <li>Time Left: <span id="time-left">60</span> seconds</li>
+    </ul>
+  </section>
 
-  <div class="game-section">
-    <div class="mode-selector">
-      <label for="gameMode">Choose Game Mode:</label>
-      <select id="gameMode">
-        <option value="classic">Play Game 1</option>
-        <option value="new">New Game Mode</option>
-      </select>
-    </div>
+  <!-- Game Mode Selection -->
+  <section class="game-selection">
+    <button id="game1-btn">Play Game 1</button>
+    <button id="new-game-btn">New Game Mode</button>
+  </section>
 
-    <div id="gameStatus">Ready to play</div>
-    <button id="startGameBtn">Start Game</button>
-    <br>
-    <button id="backToHubBtn" onclick="location.href='hub.html'">Back to Hub</button>
-  </div>
+  <!-- Game Board -->
+  <section class="game-board">
+    <div id="game-map">[Game Map Here]</div>
+  </section>
+
+  <!-- Controls (optional for mobile / desktop) -->
+  <section class="game-controls">
+    <button id="up-btn">↑</button>
+    <button id="down-btn">↓</button>
+    <button id="left-btn">←</button>
+    <button id="right-btn">→</button>
+  </section>
+
+  <button id="view-results" style="display:none;">Go to Results</button>
 
   <script src="script.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const backBtn = document.getElementById("backToHubBtn");
-      const startBtn = document.getElementById("startGameBtn");
-      const status = document.getElementById("gameStatus");
-
-      startBtn.onclick = () => {
-        // Hide back to hub while game is running
-        backBtn.style.display = "none";
-
-        status.textContent = "Game in progress...";
-        startBtn.disabled = true;
-
-        // Grab selected mode
-        const mode = document.getElementById("gameMode").value;
-
-        logActivity("game-start", `Started game: ${mode}`);
-
-        // Simulate game finish after 3 seconds (replace with real game logic)
-        setTimeout(() => {
-          const u = store.users[store.currentUser];
-          u.gamesPlayed += 1; // only counting games played, stats handled manually
-          saveAll();
-
-          logActivity("game-finish", `Finished game: ${mode}`);
-
-          // Redirect to results page
-          location.href = "results.html";
-        }, 3000);
-      };
-    });
-  </script>
-
 </body>
 </html>
