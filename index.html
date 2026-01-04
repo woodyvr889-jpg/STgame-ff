@@ -1,51 +1,131 @@
 <!DOCTYPE html>
 <html lang="en" data-page="login">
 <head>
-  <meta charset="UTF-8">
-  <title>Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stranger Things Login</title>
+
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+
+  <style>
+    h1, h2, button {
+      font-family: 'Creepster', cursive;
+      color: #ff3c00;
+      text-shadow: 0 0 8px #ff3c00;
+      font-weight: bold;
+    }
+
+    .login-wrapper {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .user-card {
+      padding: 18px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #111, #1a1a1a);
+      border: 2px solid #ff3c00;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .user-card:hover {
+      box-shadow: 0 0 20px #ff3c00;
+      transform: translateY(-3px);
+    }
+
+    #keypadSection {
+      margin-top: 30px;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 300px;
+      margin: 15px auto;
+    }
+
+    .key-btn {
+      padding: 15px;
+      font-size: 1.3rem;
+      background: #111;
+      border: 2px solid #ff3c00;
+      color: white;
+      border-radius: 10px;
+    }
+
+    .key-btn:hover {
+      background: #ff3c00;
+    }
+
+    #loginError {
+      color: #ff4d4d;
+      margin-top: 10px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="top-header">
-  <div class="app-title">Select User</div>
-</div>
-
-<div class="card">
-  <div id="selectedUserName" style="text-align:center; margin-bottom:10px;"></div>
-
-  <div class="user-grid">
-    <div class="user-card" onclick="selectUser('Dad')">Dad</div>
-    <div class="user-card" onclick="selectUser('Grandad Darren')">Grandad Darren</div>
-    <div class="user-card" onclick="selectUser('Grandad Steve')">Grandad Steve</div>
-    <div class="user-card" onclick="selectUser('Grandma Jean')">Grandma Jean</div>
-    <div class="user-card" onclick="selectUser('James')">James</div>
-    <div class="user-card" onclick="selectUser('Mum')">Mum</div>
-    <div class="user-card" onclick="selectUser('Nannan')">Nannan</div>
-    <div class="user-card" onclick="selectUser('Uncle Paul')">Uncle Paul</div>
+  <div class="top-header">
+    <div class="app-title">Stranger Things Login</div>
   </div>
 
-  <!-- Admin keypad (James only) -->
-  <div id="keypadSection" class="hidden">
-    <div class="keypad-display" id="codeDisplay"></div>
+  <div class="login-wrapper">
 
-    <div class="keypad">
-      <button class="key-btn" onclick="pressKey('1')">1</button>
-      <button class="key-btn" onclick="pressKey('2')">2</button>
-      <button class="key-btn" onclick="pressKey('3')">3</button>
-      <button class="key-btn" onclick="pressKey('4')">4</button>
-      <button class="key-btn" onclick="pressKey('5')">5</button>
-      <button class="key-btn" onclick="pressKey('6')">6</button>
-      <button class="key-btn" onclick="pressKey('7')">7</button>
-      <button class="key-btn" onclick="pressKey('8')">8</button>
-      <button class="key-btn" onclick="pressKey('9')">9</button>
-      <button class="key-btn danger" onclick="clearCode()">Clear</button>
-      <button class="key-btn" onclick="pressKey('0')">0</button>
-      <button class="key-btn primary" onclick="submitCode()">OK</button>
+    <h1>Select Your Profile</h1>
+
+    <!-- PROFILE GRID -->
+    <div id="loginProfiles" class="user-grid"></div>
+
+    <!-- JAMES ONLY PASSCODE -->
+    <div id="keypadSection" class="hidden">
+      <h2>Enter Admin Code</h2>
+      <div id="keypadDisplay" class="keypad-display">------</div>
+
+      <div class="keypad">
+        <button class="key-btn" data-num="1">1</button>
+        <button class="key-btn" data-num="2">2</button>
+        <button class="key-btn" data-num="3">3</button>
+        <button class="key-btn" data-num="4">4</button>
+        <button class="key-btn" data-num="5">5</button>
+        <button class="key-btn" data-num="6">6</button>
+        <button class="key-btn" data-num="7">7</button>
+        <button class="key-btn" data-num="8">8</button>
+        <button class="key-btn" data-num="9">9</button>
+        <button class="key-btn danger" data-action="clear">C</button>
+        <button class="key-btn" data-num="0">0</button>
+        <button class="key-btn primary" data-action="enter">✔</button>
+      </div>
+
+      <div id="loginError"></div>
     </div>
-  </div>
-</div>
 
-<script src="script.js"></script>
+  </div>
+
+  <script src="script.js"></script>
+
+  <script>
+    // Notification permission AFTER login
+    function requestNotifications() {
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
+
+    document.addEventListener("login-success", requestNotifications);
+  </script>
+
 </body>
 </html>
