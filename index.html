@@ -2,49 +2,50 @@
 <html lang="en" data-page="login">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Stranger Things Hub</title>
+  <title>Login</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Stranger Things font -->
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
-  <style>
-    h1, h2, h3, button {
-      font-family: 'Creepster', cursive;
-      font-weight: bold;
-      color: #ff3c00;
-      text-shadow: 0 0 8px #ff3c00;
-    }
-  </style>
 </head>
 <body>
 
-  <div class="top-header">
-    <div class="app-title">Stranger Things Login</div>
-    <div class="header-sub">Select your profile and enter your code</div>
+<div class="top-header">
+  <div class="app-title">Select User</div>
+</div>
+
+<div class="card">
+  <div id="selectedUserName" style="text-align:center; margin-bottom:10px;"></div>
+
+  <div class="user-grid">
+    <div class="user-card" onclick="selectUser('Dad')">Dad</div>
+    <div class="user-card" onclick="selectUser('Grandad Darren')">Grandad Darren</div>
+    <div class="user-card" onclick="selectUser('Grandad Steve')">Grandad Steve</div>
+    <div class="user-card" onclick="selectUser('Grandma Jean')">Grandma Jean</div>
+    <div class="user-card" onclick="selectUser('James')">James</div>
+    <div class="user-card" onclick="selectUser('Mum')">Mum</div>
+    <div class="user-card" onclick="selectUser('Nannan')">Nannan</div>
+    <div class="user-card" onclick="selectUser('Uncle Paul')">Uncle Paul</div>
   </div>
 
-  <div id="loginProfiles" class="user-grid card"></div>
+  <!-- Admin keypad (James only) -->
+  <div id="keypadSection" class="hidden">
+    <div class="keypad-display" id="codeDisplay"></div>
 
-  <div id="keypadSection" class="card hidden">
-    <div id="keypadDisplay" class="keypad-display">--------</div>
     <div class="keypad">
-      <button class="key-btn" data-num="1">1</button>
-      <button class="key-btn" data-num="2">2</button>
-      <button class="key-btn" data-num="3">3</button>
-      <button class="key-btn" data-num="4">4</button>
-      <button class="key-btn" data-num="5">5</button>
-      <button class="key-btn" data-num="6">6</button>
-      <button class="key-btn" data-num="7">7</button>
-      <button class="key-btn" data-num="8">8</button>
-      <button class="key-btn" data-num="9">9</button>
-      <button class="key-btn" data-action="clear">C</button>
-      <button class="key-btn" data-num="0">0</button>
-      <button class="key-btn primary" data-action="enter">Enter</button>
+      <button class="key-btn" onclick="pressKey('1')">1</button>
+      <button class="key-btn" onclick="pressKey('2')">2</button>
+      <button class="key-btn" onclick="pressKey('3')">3</button>
+      <button class="key-btn" onclick="pressKey('4')">4</button>
+      <button class="key-btn" onclick="pressKey('5')">5</button>
+      <button class="key-btn" onclick="pressKey('6')">6</button>
+      <button class="key-btn" onclick="pressKey('7')">7</button>
+      <button class="key-btn" onclick="pressKey('8')">8</button>
+      <button class="key-btn" onclick="pressKey('9')">9</button>
+      <button class="key-btn danger" onclick="clearCode()">Clear</button>
+      <button class="key-btn" onclick="pressKey('0')">0</button>
+      <button class="key-btn primary" onclick="submitCode()">OK</button>
     </div>
-    <div id="loginError" style="color:#ff3c00;margin-top:10px;text-align:center;"></div>
-    <button id="backToProfiles" class="btn ghost" style="margin-top:15px;">Back to Profiles</button>
   </div>
+</div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
