@@ -1,37 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Purchase Records</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Records - Stranger Things</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body data-page="records" class="st-theme">
+<body>
+  <header>
+    <h1>Activity Records</h1>
+    <button onclick="goToPage('hub.html')">Back to Hub</button>
+  </header>
 
-<header class="top-header glass compact">
-  <h1 class="app-title">Purchase Requests</h1>
-  <nav class="nav-buttons glass">
-    <button id="btnHub">Hub</button>
-    <button id="btnLogout">Logout</button>
-  </nav>
-</header>
-
-<main class="main-shell">
-  <section class="card glass">
-    <table id="purchaseRequestsTable">
+  <section class="records">
+    <table>
       <thead>
         <tr>
           <th>User</th>
-          <th>Item</th>
-          <th>Price</th>
-          <th>Action</th>
+          <th>Activity</th>
+          <th>Date</th>
+          <th>Time</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody id="records-table">
+        <!-- JS will fill this -->
+      </tbody>
     </table>
   </section>
-</main>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
